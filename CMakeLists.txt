@@ -28,8 +28,17 @@ find_package(SDL3 REQUIRED CONFIG)
 
 add_executable(chip8emu src/main.cpp
         src/ui.cpp
-        src/ui.hpp)
+        src/ui.hpp
+        src/State.cpp
+        src/State.hpp)
 
 
 target_link_libraries(chip8emu PRIVATE SDL3::SDL3)
 target_link_libraries(chip8emu PRIVATE imgui)
+
+add_custom_command(TARGET chip8emu POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests"
+        "$<TARGET_FILE_DIR:chip8emu>/tests"
+        COMMENT "chip8emu: copying tests folder into build folder"
+)
