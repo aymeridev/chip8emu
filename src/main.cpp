@@ -1,5 +1,6 @@
 #define SDL_MAIN_USE_CALLBACKS 1
 
+#include <iostream>
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 
@@ -39,8 +40,10 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
     }
 
     if (!state.load_rom("tests/1-chip8-logo.ch8"s)) {
-
+        std::cerr << "couldn't load rom";
+        return SDL_APP_FAILURE;
     }
+    state.fetch();
 
     InitUI(window, renderer);
 
