@@ -5,14 +5,14 @@
 #include "imgui.h"
 #include "imgui_impl_sdl3.h"
 #include "imgui_impl_sdlrenderer3.h"
-#include "State.hpp"
+#include "Chip8State.hpp"
 
 class DebugUI {
 public:
-    DebugUI(State& state, SDL_Window* window, SDL_Renderer* renderer);
+    DebugUI(Chip8State& state, SDL_Window* window, SDL_Renderer* renderer);
     void Update();
 private:
-    const State& state;
+    const Chip8State& state;
     SDL_Window* window;
     SDL_Renderer* renderer;
 };

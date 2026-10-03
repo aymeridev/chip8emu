@@ -4,10 +4,10 @@
 #include <cassert>
 #include <iomanip>
 
-#include "State.hpp"
+#include "Chip8State.hpp"
 
 
-bool State::load_rom(const std::string &file_path) {
+bool Chip8State::load_rom(const std::string &file_path) {
     std::ifstream file (file_path, std::ios::binary | std::ios::ate);
     if (!file) {
         std::cerr << "load_rom: cannot open " << file_path << "\n";
@@ -32,7 +32,7 @@ bool State::load_rom(const std::string &file_path) {
 }
 
 
-void State::fetch() {
+void Chip8State::fetch() {
     const std::uint8_t left = memory[pc];
     const std::uint8_t right = memory[pc + 1];
     const std::uint16_t instr = (left << 8) | right;
@@ -42,7 +42,7 @@ void State::fetch() {
 }
 
 
-void State::decode(std::uint16_t instruction) {
+void Chip8State::decode(std::uint16_t instruction) {
 
     const std::uint8_t family = (instruction >> 12);
 

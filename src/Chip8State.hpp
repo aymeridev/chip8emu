@@ -6,7 +6,7 @@
 constexpr int screen_width = 64;
 constexpr int screen_height = 32;
 
-class State {
+class Chip8State {
 public:
 
     std::array<std::uint8_t, 16> v; // general registers

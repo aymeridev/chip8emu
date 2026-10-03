@@ -30,8 +30,8 @@ target_link_libraries(imgui PUBLIC SDL3::SDL3)
 add_executable(chip8emu src/main.cpp
         src/DebugUI.cpp
         src/DebugUI.hpp
-        src/State.cpp
-        src/State.hpp)
+        src/Chip8State.cpp
+        src/Chip8State.hpp)
 
 if(ENABLE_SANITIZERS)
     message(STATUS "enabling sanitizers")

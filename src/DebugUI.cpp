@@ -1,6 +1,6 @@
 #include "DebugUI.hpp"
 
-DebugUI::DebugUI(State &state, SDL_Window *window, SDL_Renderer *renderer) :
+DebugUI::DebugUI(Chip8State &state, SDL_Window *window, SDL_Renderer *renderer) :
     state(state), window(window), renderer(renderer) {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -14,7 +14,16 @@ DebugUI::DebugUI(State &state, SDL_Window *window, SDL_Renderer *renderer) :
 }
 
 void DebugUI::Update() {
-    ImGuiIO& io = ImGui::GetIO();
+    ImGui_ImplSDLRenderer3_NewFrame();
+    ImGui_ImplSDL3_NewFrame();
+    ImGui::NewFrame();
+
+    static bool open = true;
+    if (open) ImGui::ShowDemoWindow(&open);
+
+    ImGui::Render();
+
+    const ImGuiIO& io = ImGui::GetIO();
     SDL_SetRenderScale(renderer, io.DisplayFramebufferScale.x, io.DisplayFramebufferScale.y);
     ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), renderer);
 }
