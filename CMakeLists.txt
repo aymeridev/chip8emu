@@ -38,13 +38,15 @@ if(ENABLE_SANITIZERS)
 endif ()
 
 if (MSVC)
-    target_compile_options(chip8emu PRIVATE /W4 /fsanitize=address) # no UBSan with MSVC
+    target_compile_options(chip8emu PRIVATE /W4) # no UBSan with MSVC
     if(ENABLE_SANITIZERS)
+        target_compile_options(chip8emu PRIVATE /fsanitize=address)
         target_link_options(chip8emu PRIVATE -fsanitize=address)
     endif ()
 else ()
-    target_compile_options(chip8emu PRIVATE -Wall -Wextra -Wpedantic -fsanitize=address,undefined)
+    target_compile_options(chip8emu PRIVATE -Wall -Wextra -Wpedantic)
     if(ENABLE_SANITIZERS)
+        target_compile_options(chip8emu PRIVATE -fsanitize=address,undefined)
         target_link_options(chip8emu PRIVATE -fsanitize=address,undefined)
     endif ()
 endif ()
