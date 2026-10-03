@@ -1,12 +1,13 @@
 #define SDL_MAIN_USE_CALLBACKS 1
 
 #include <iostream>
+#include <memory>
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 
 #include "string"
 #include "State.hpp"
-#include "ui.hpp"
+#include "DebugUI.hpp"
 
 using namespace std::string_literals;
 
@@ -15,6 +16,7 @@ static SDL_Renderer *renderer = nullptr;
 
 constexpr float pixel_scale = 24.0f;
 
+std::unique_ptr<DebugUI> ui = nullptr;
 State state;
 
 
@@ -45,7 +47,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
     }
     state.fetch();
 
-    InitUI(window, renderer);
+    ui = std::make_unique<DebugUI>( state, window, renderer );
 
     return SDL_APP_CONTINUE;
 }
@@ -86,11 +88,8 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
         }
     }
 
-    // ...
-    ImGuiIO& io = ImGui::GetIO();
-    SDL_SetRenderScale(renderer, io.DisplayFramebufferScale.x, io.DisplayFramebufferScale.y);
-    ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), renderer);
 
+    if (ui) ui->Update();
     SDL_RenderPresent(renderer);
     return SDL_APP_CONTINUE;
 }

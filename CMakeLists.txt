@@ -27,8 +27,8 @@ target_link_libraries(imgui PUBLIC SDL3::SDL3)
 find_package(SDL3 REQUIRED CONFIG)
 
 add_executable(chip8emu src/main.cpp
-        src/ui.cpp
-        src/ui.hpp
+        src/DebugUI.cpp
+        src/DebugUI.hpp
         src/State.cpp
         src/State.hpp)
 
