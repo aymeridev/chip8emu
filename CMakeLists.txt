@@ -4,12 +4,16 @@ project(chip8emu LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+option(ENABLE_SANITIZERS "enable to use ASan/UBSan" ON)
+
 include(FetchContent)
 FetchContent_Declare(imgui
     GIT_REPOSITORY https://github.com/ocornut/imgui.git
     GIT_TAG v1.92.9b)
 
 FetchContent_MakeAvailable(imgui)
+
+find_package(SDL3 REQUIRED CONFIG)
 
 add_library(imgui STATIC
         ${imgui_SOURCE_DIR}/imgui.cpp
@@ -23,15 +27,27 @@ add_library(imgui STATIC
 target_include_directories(imgui PUBLIC ${imgui_SOURCE_DIR} ${imgui_SOURCE_DIR}/backends)
 target_link_libraries(imgui PUBLIC SDL3::SDL3)
 
-
-find_package(SDL3 REQUIRED CONFIG)
-
 add_executable(chip8emu src/main.cpp
         src/DebugUI.cpp
         src/DebugUI.hpp
         src/State.cpp
         src/State.hpp)
 
+if(ENABLE_SANITIZERS)
+    message(STATUS "enabling sanitizers")
+endif ()
+
+if (MSVC)
+    target_compile_options(chip8emu PRIVATE /W4 /fsanitize=address) # no UBSan with MSVC
+    if(ENABLE_SANITIZERS)
+        target_link_options(chip8emu PRIVATE -fsanitize=address)
+    endif ()
+else ()
+    target_compile_options(chip8emu PRIVATE -Wall -Wextra -Wpedantic -fsanitize=address,undefined)
+    if(ENABLE_SANITIZERS)
+        target_link_options(chip8emu PRIVATE -fsanitize=address,undefined)
+    endif ()
+endif ()
 
 target_link_libraries(chip8emu PRIVATE SDL3::SDL3)
 target_link_libraries(chip8emu PRIVATE imgui)
