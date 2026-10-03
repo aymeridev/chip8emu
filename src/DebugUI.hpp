@@ -12,7 +12,7 @@ public:
     DebugUI(Chip8State& state, SDL_Window* window, SDL_Renderer* renderer);
     void Update();
 private:
-    const Chip8State& state;
+    Chip8State& state;
     SDL_Window* window;
     SDL_Renderer* renderer;
 };

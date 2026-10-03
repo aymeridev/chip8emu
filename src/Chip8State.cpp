@@ -28,6 +28,8 @@ bool Chip8State::load_rom(const std::string &file_path) {
     std::ranges::copy(bytes, memory.begin());
 
     std::cout << "read " << file.gcount() << " bytes\n";
+
+    rom_file_path = file_path;
     return true;
 }
 
@@ -43,25 +45,29 @@ void Chip8State::fetch() {
 
 
 void Chip8State::decode(std::uint16_t instruction) {
+    // std::cout << std::setw(4) << std::hex << std::uppercase << std::setfill('0') << instruction << "\n";
 
-    const std::uint8_t family = (instruction >> 12);
+    const std::uint16_t nnn = instruction << 4;
+    const std::uint8_t x = instruction | 0x0F00;
 
-    std::cout << std::setw(4) << std::hex << std::uppercase << std::setfill('0') << instruction << "\n";
 
+    // std::cout << std::setw(4) << std::hex << std::uppercase << std::setfill('0') << nnn << "\n";
 
-    switch (family) {
+    std::cout << nnn;
+    switch (instruction >> 12) { // group of instruction
         case 0:
             if (instruction == 0x00E0) { // CLS
-                for (int y = 0; y < screen_height; y++) {
-                    for (int x = 0; x < screen_width; ++x) {
-                        screen[y][x] = false;
+                for (auto & y : screen) {
+                    for (bool & x : y) {
+                        x = false;
                     }
                 }
             } else if (instruction == 0x00EE) { // RET
                 // TODO
             }
             break;
-        case 1:
+        case 1: // JUMP
+            pc = nnn;
             break;
         case 2:
             break;
@@ -77,5 +83,7 @@ void Chip8State::decode(std::uint16_t instruction) {
             break;
         case 8:
             break;
+        default:
+            throw std::runtime_error("Unknown instruction");
     }
 }

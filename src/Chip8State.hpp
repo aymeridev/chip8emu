@@ -1,5 +1,6 @@
 #pragma once
 #include <array>
+#include <string>
 #include <cstdint>
 
 
@@ -9,6 +10,7 @@ constexpr int screen_height = 32;
 class Chip8State {
 public:
 
+    std::string rom_file_path;
     std::array<std::uint8_t, 16> v; // general registers
     uint8_t sp; // stack pointer
     uint16_t i; // store memory address
