@@ -31,6 +31,7 @@ void DebugUI::Update() {
 
     ImGui::Text("current rom: %s", state.rom_file_path.c_str());
     ImGui::Text("program counter: %d", state.pc);
+    ImGui::Text("i: %d", state.i);
     ImGui::Spacing();
     ImGui::Text("Registers");
     for (const auto& value : state.v) {
@@ -55,7 +56,7 @@ void DebugUI::Update() {
 
     int line_count = 0;
     if (ImGui::BeginTable("mem", 9)) {
-        for (int row = 0; row < 4096; row += 16) {
+        for (int row = 0x200; row < 4096; row += 16) {
             ImGui::TableNextRow();
             ImGui::TableSetColumnIndex(0);
             ImGui::Text("%d", row);

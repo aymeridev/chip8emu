@@ -14,7 +14,7 @@ public:
     std::array<std::uint8_t, 16> v; // general registers
     uint8_t sp; // stack pointer
     uint16_t i; // store memory address
-    uint16_t pc; // program counter
+    uint16_t pc = 0x200; // program counter
 
 
 

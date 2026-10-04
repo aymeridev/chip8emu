@@ -48,6 +48,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
     }
 
     if (!state->chip8_state.load_rom("tests/1-chip8-logo.ch8"s)) {
+    // if (!state->chip8_state.load_rom("tests/1-chip8-logo.ch8"s)) {
         std::cerr << "couldn't load rom";
         return SDL_APP_FAILURE;
     }
@@ -80,11 +81,13 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     SDL_SetRenderDrawColor(state->renderer, 0, 127, 255, 255);
     for (int y = 0; y < screen_height; y++) {
         for (int x = 0; x < screen_width; ++x) {
-            const SDL_FRect rect = {
-                static_cast<float>(x) * pixel_scale, static_cast<float>(y) * pixel_scale,
-                pixel_scale, pixel_scale
-            };
-            SDL_RenderFillRect(state->renderer, &rect);
+            if (state->chip8_state.screen[y][x]) {
+                const SDL_FRect rect = {
+                    static_cast<float>(x) * pixel_scale, static_cast<float>(y) * pixel_scale,
+                    pixel_scale, pixel_scale
+                };
+                SDL_RenderFillRect(state->renderer, &rect);
+            }
         }
     }
 
