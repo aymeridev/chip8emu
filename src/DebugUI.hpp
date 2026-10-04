@@ -2,17 +2,18 @@
 
 #include <SDL3/SDL.h>
 
-#include "imgui.h"
-#include "imgui_impl_sdl3.h"
-#include "imgui_impl_sdlrenderer3.h"
+
 #include "Chip8State.hpp"
+
+struct AppState;
 
 class DebugUI {
 public:
-    DebugUI(Chip8State& state, SDL_Window* window, SDL_Renderer* renderer);
-    void Update();
+    DebugUI(AppState* appstate);
+    void update();
 private:
-    Chip8State& state;
-    SDL_Window* window;
-    SDL_Renderer* renderer;
+    AppState* appstate;
+    Chip8State& chip8_state;
+    SDL_Window* window = nullptr;
+    SDL_Renderer* renderer = nullptr;
 };

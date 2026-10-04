@@ -1,8 +1,8 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include <cassert>
 #include <iomanip>
+#include <cstdint>
 
 #include "Chip8State.hpp"
 

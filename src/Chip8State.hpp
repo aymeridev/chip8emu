@@ -1,7 +1,7 @@
 #pragma once
+
 #include <array>
 #include <string>
-#include <cstdint>
 
 
 constexpr int screen_width = 64;

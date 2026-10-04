@@ -1,25 +1,18 @@
 #define SDL_MAIN_USE_CALLBACKS 1
 
+#include <imgui_impl_sdl3.h>
 #include <iostream>
 #include <memory>
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 
+#include "AppState.hpp"
+#include "DebugUI.hpp"
 #include "string"
 #include "Chip8State.hpp"
-#include "DebugUI.hpp"
 
 using namespace std::string_literals;
 
-
-struct AppState {
-    SDL_Window *window = nullptr;
-    SDL_Renderer *renderer = nullptr;
-    Chip8State chip8_state = {};
-    std::unique_ptr<DebugUI> debug_ui = nullptr;
-    std::array<float, 3> background_color { 0, 0, 0 };
-    std::array<float, 3> foreground_color { 255, 255, 255 };
-};
 
 constexpr float pixel_scale = 24.0f;
 
@@ -45,7 +38,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
         return SDL_APP_FAILURE;
     }
 
-    if (SDL_SetRenderVSync(state->renderer, 1)) {
+    if (!SDL_SetRenderVSync(state->renderer, 1)) {
         SDL_Log("VSync not available: %s", SDL_GetError());
     }
 
@@ -56,7 +49,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
     }
     state->chip8_state.fetch();
 
-    state->debug_ui = std::make_unique<DebugUI>( state->chip8_state, state->window, state->renderer );
+    state->debug_ui = std::make_unique<DebugUI>(state);
 
     return SDL_APP_CONTINUE;
 }
@@ -86,7 +79,7 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     SDL_SetRenderDrawColorFloat(state->renderer,
          state->foreground_color[0],
         state->foreground_color[1],
-        state->foreground_color[2],255);
+        state->foreground_color[2],1.0f);
     for (int y = 0; y < screen_height; y++) {
         for (int x = 0; x < screen_width; ++x) {
             if (state->chip8_state.screen[y][x]) {

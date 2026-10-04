@@ -31,7 +31,8 @@ add_executable(chip8emu src/main.cpp
         src/DebugUI.cpp
         src/DebugUI.hpp
         src/Chip8State.cpp
-        src/Chip8State.hpp)
+        src/Chip8State.hpp
+        src/AppState.hpp)
 
 if(ENABLE_SANITIZERS)
     message(STATUS "enabling sanitizers")

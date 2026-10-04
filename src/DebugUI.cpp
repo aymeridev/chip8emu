@@ -1,9 +1,14 @@
-#include "DebugUI.hpp"
-
 #include <format>
 
-DebugUI::DebugUI(Chip8State &state, SDL_Window *window, SDL_Renderer *renderer) :
-    state(state), window(window), renderer(renderer) {
+#include "AppState.hpp"
+#include "DebugUI.hpp"
+
+#include "imgui.h"
+#include "imgui_impl_sdl3.h"
+#include "imgui_impl_sdlrenderer3.h"
+
+DebugUI::DebugUI(AppState *appstate) :
+    appstate(appstate), chip8_state(appstate->chip8_state) {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
@@ -11,11 +16,56 @@ DebugUI::DebugUI(Chip8State &state, SDL_Window *window, SDL_Renderer *renderer) 
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     ImGui::StyleColorsDark();
 
+    window = appstate->window;
+    renderer = appstate->renderer;
+
     ImGui_ImplSDL3_InitForSDLRenderer(window, renderer);
     ImGui_ImplSDLRenderer3_Init(renderer);
 }
 
-void DebugUI::Update() {
+namespace {
+    void draw_memory_viewer(const Chip8State &state) {
+        bool p_memory_open = true;
+        if (!ImGui::Begin("Memory", &p_memory_open)) {
+            ImGui::End();
+            return;
+        }
+
+        if (ImGui::BeginTable("mem", 9)) {
+            for (int row = 0x200; row < 4096; row += 16) {
+                ImGui::TableNextRow();
+                ImGui::TableSetColumnIndex(0);
+                ImGui::Text("%d", row);
+                for (int i = 0; i < 8; ++i) {
+                    ImGui::TableSetColumnIndex(1 + i);
+                    const int idx = row + (i * 2);
+                    if (idx == state.pc) ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg, IM_COL32(0, 0, 255, 255));
+                    ImGui::Text("%04X", (state.memory[idx] << 8) | state.memory[idx + 1]);
+                }
+            }
+            ImGui::EndTable();
+        }
+
+        ImGui::End();
+    }
+
+    void draw_display_settings(const Chip8State &state) {
+        bool p_display_open = true;
+
+        if (!ImGui::Begin("Display", &p_display_open)) {
+            ImGui::End();
+            return;
+        }
+
+
+        // ImGui::ColorEdit3("background", &color);
+        // ImGui::ColorEdit3("foreground");
+
+        ImGui::End();
+    }
+}
+
+void DebugUI::update() {
     ImGui_ImplSDLRenderer3_NewFrame();
     ImGui_ImplSDL3_NewFrame();
     ImGui::NewFrame();
@@ -29,12 +79,12 @@ void DebugUI::Update() {
         return;
     }
 
-    ImGui::Text("current rom: %s", state.rom_file_path.c_str());
-    ImGui::Text("program counter: %d", state.pc);
-    ImGui::Text("i: %d", state.i);
+    ImGui::Text("current rom: %s", chip8_state.rom_file_path.c_str());
+    ImGui::Text("program counter: %d", chip8_state.pc);
+    ImGui::Text("i: %d", chip8_state.i);
     ImGui::Spacing();
     ImGui::Text("Registers");
-    for (const auto& value : state.v) {
+    for (const auto& value : chip8_state.v) {
         ImGui::Text("%d", value);
     }
 
@@ -42,36 +92,15 @@ void DebugUI::Update() {
 
 
     if (ImGui::Button("next")) {
-        state.fetch();
+        chip8_state.fetch();
     }
 
     ImGui::End();
 
 
-    bool p_memory_open = true;
-    if (!ImGui::Begin("Memory", &p_memory_open)) {
-        ImGui::End();
-        return;
-    }
+    draw_memory_viewer(chip8_state);
+    draw_display_settings(chip8_state);
 
-    int line_count = 0;
-    if (ImGui::BeginTable("mem", 9)) {
-        for (int row = 0x200; row < 4096; row += 16) {
-            ImGui::TableNextRow();
-            ImGui::TableSetColumnIndex(0);
-            ImGui::Text("%d", row);
-            for (int i = 0; i < 8; ++i) {
-                ImGui::TableSetColumnIndex(1 + i);
-                const int idx = row + (i * 2);
-                if (idx == state.pc) ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg, IM_COL32(0, 0, 255, 255));
-                ImGui::Text("%04X", (state.memory[idx] << 8) | state.memory[idx + 1]);
-            }
-        }
-        ImGui::EndTable();
-    }
-
-
-    ImGui::End();
 
     ImGui::Render();
 
