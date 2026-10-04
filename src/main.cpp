@@ -17,6 +17,8 @@ struct AppState {
     SDL_Renderer *renderer = nullptr;
     Chip8State chip8_state = {};
     std::unique_ptr<DebugUI> debug_ui = nullptr;
+    std::array<float, 3> background_color { 0, 0, 0 };
+    std::array<float, 3> foreground_color { 255, 255, 255 };
 };
 
 constexpr float pixel_scale = 24.0f;
@@ -75,10 +77,16 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     const auto* state = static_cast<AppState*>(appstate);
 
     SDL_SetRenderScale(state->renderer, 1.0f, 1.0f);
-    SDL_SetRenderDrawColorFloat(state->renderer, 0.0f, 0.0f, 0.0f, 1.0f);
+    SDL_SetRenderDrawColorFloat(state->renderer,
+         state->background_color[0],
+        state->background_color[1],
+        state->background_color[2], 1.0f);
     SDL_RenderClear(state->renderer);
 
-    SDL_SetRenderDrawColor(state->renderer, 0, 127, 255, 255);
+    SDL_SetRenderDrawColorFloat(state->renderer,
+         state->foreground_color[0],
+        state->foreground_color[1],
+        state->foreground_color[2],255);
     for (int y = 0; y < screen_height; y++) {
         for (int x = 0; x < screen_width; ++x) {
             if (state->chip8_state.screen[y][x]) {
@@ -92,7 +100,7 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     }
 
 
-    if (state->debug_ui) state->debug_ui->Update();
+    if (state->debug_ui) state->debug_ui->update();
     SDL_RenderPresent(state->renderer);
     return SDL_APP_CONTINUE;
 }
