@@ -49,7 +49,7 @@ namespace {
         ImGui::End();
     }
 
-    void draw_display_settings(const Chip8State &state) {
+    void draw_display_settings(AppState *appstate) {
         bool p_display_open = true;
 
         if (!ImGui::Begin("Display", &p_display_open)) {
@@ -58,8 +58,8 @@ namespace {
         }
 
 
-        // ImGui::ColorEdit3("background", &color);
-        // ImGui::ColorEdit3("foreground");
+        ImGui::ColorEdit3("background", appstate->background_color.data());
+        ImGui::ColorEdit3("foreground", appstate->foreground_color.data());
 
         ImGui::End();
     }
@@ -99,7 +99,7 @@ void DebugUI::update() {
 
 
     draw_memory_viewer(chip8_state);
-    draw_display_settings(chip8_state);
+    draw_display_settings(appstate);
 
 
     ImGui::Render();

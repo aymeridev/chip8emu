@@ -5,7 +5,7 @@
 
 #include "Chip8State.hpp"
 
-struct AppState;
+class AppState;
 
 class DebugUI {
 public:
