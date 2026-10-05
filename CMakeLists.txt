@@ -6,6 +6,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 option(ENABLE_SANITIZERS "enable to use ASan/UBSan" ON)
 
+include_directories(tests)
+
 include(FetchContent)
 FetchContent_Declare(imgui
     GIT_REPOSITORY https://github.com/ocornut/imgui.git
@@ -27,13 +29,24 @@ add_library(imgui STATIC
 target_include_directories(imgui PUBLIC ${imgui_SOURCE_DIR} ${imgui_SOURCE_DIR}/backends)
 target_link_libraries(imgui PUBLIC SDL3::SDL3)
 
+add_library(chip8core src/Chip8State.cpp
+        src/Chip8State.hpp
+)
+
+
 add_executable(chip8emu src/main.cpp
         src/DebugUI.cpp
         src/DebugUI.hpp
-        src/Chip8State.cpp
-        src/Chip8State.hpp
         src/AppState.hpp
         src/example_roms.hpp)
+
+add_executable(chip8tests
+        tests/test_main.cpp
+        tests/test_utils.hpp)
+
+target_link_directories(chip8tests PRIVATE chip8core)
+target_link_libraries(chip8tests PRIVATE chip8core)
+target_include_directories(chip8tests PRIVATE external)
 
 if(ENABLE_SANITIZERS)
     message(STATUS "enabling sanitizers")
@@ -55,10 +68,11 @@ endif ()
 
 target_link_libraries(chip8emu PRIVATE SDL3::SDL3)
 target_link_libraries(chip8emu PRIVATE imgui)
+target_link_libraries(chip8emu PRIVATE chip8core)
 
 add_custom_command(TARGET chip8emu POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${CMAKE_CURRENT_SOURCE_DIR}/tests"
-        "$<TARGET_FILE_DIR:chip8emu>/tests"
-        COMMENT "chip8emu: copying tests folder into build folder"
+        "${CMAKE_CURRENT_SOURCE_DIR}/roms"
+        "$<TARGET_FILE_DIR:chip8emu>/roms"
+        COMMENT "chip8emu: copying roms into build folder"
 )
