@@ -53,6 +53,67 @@ void Chip8State::fetch() {
 }
 
 
+void Chip8State::run_math(std::uint8_t n, std::uint8_t x, std::uint8_t y) {
+    switch (n) {
+        case 0: // assign
+            v[x] = v[y];
+            break;
+        case 1: // or
+            v[x] |= v[y];
+            break;
+        case 2: // and
+            v[x] &= v[y];
+            break;
+        case 3: // xor
+            v[x] ^= v[y];
+            break;
+        case 4: {
+            // add, if overflow set vF to 1 else 0
+            const std::uint16_t res = v[x] + v[y];
+            v[x] = res;
+
+            v[0xF] = res > 0x00FF ? 1 : 0;
+            break;
+        }
+        case 5: {
+            // subtract, if underflow set vF to 0 else 1
+            const std::uint16_t res = v[x] - v[y];
+            v[x] = res;
+
+            v[0xF] = res > 0x00FF ? 0 : 1;
+            break;
+        }
+        case 6: {
+            // set vX to vY and shift vX one bit to the right, set vF to the bit shifted out, even if X=F! [Quirk 6]
+            v[x] = v[y];
+            const std::uint8_t bit = v[x] & 1;
+            v[x] >>= 1;
+
+            v[0xF] = bit;
+
+            break;
+        }
+        case 7: {
+            // set vX to the result of subtracting vX from vY, vF is set to 0 if an underflow happened, to 1 if not, even if X=F!
+            const std::uint16_t res = v[y] - v[x];
+            v[x] = res;
+            v[0xF] = res > 0x00FF ? 0 : 1;
+            break;
+        }
+        case 0xE: {
+            // set vX to vY and shift vX one bit to the left, set vF to the bit shifted out, even if X=F!
+            v[x] = v[y];
+            const std::uint8_t bit = (v[x] & 0x80) >> 7;
+            v[x] <<= 1;
+            v[0xF] = bit;
+            break;
+        }
+        default:
+            std::cerr << "unknown instruction " << n << "\n";
+            break;
+    }
+}
+
 void Chip8State::decode(std::uint16_t instruction) {
 
     const std::uint16_t nnn = instruction & 0x0FFF;
@@ -94,19 +155,19 @@ void Chip8State::decode(std::uint16_t instruction) {
         case 7:
             v[x] += nn;
             break;
-        // case 8:
-        //     break;
+        case 8:
+            run_math(n, x, y);
+            break;
         // case 9:
         //     break;
-        case 10: // a
+        case 0xA:
             i = nnn;
             break;
-        // case 11: // b
+        // case 0xB:
         //     break;
-        case 12: // c
-            break;
-        case 13: {
-            // d (DISPLAY)
+        // case 0xC:
+        //     break;
+        case 0xD: { // display
 
             // get coordinates
             const int cx = v[x] % screen_width;
@@ -128,13 +189,13 @@ void Chip8State::decode(std::uint16_t instruction) {
 
             break;
         }
-        // case 14: // e
+        // case 0xE:
         //     break;
-        // case 15: // f
+        // case 0xF:
         //     break;
-        // default:
-        //     throw std::runtime_error("Unknown instruction");
-        //     break;
+        default:
+            std::cout << "unknown instruction:" << std::setw(4) << std::hex << std::uppercase << std::setfill('0') << instruction << "\n";
+            break;
     }
 }
 

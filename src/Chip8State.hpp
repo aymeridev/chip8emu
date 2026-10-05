@@ -27,4 +27,5 @@ public:
 
 private:
     void clear_screen();
+    void run_math(std::uint8_t n, std::uint8_t x, std::uint8_t y);
 };
