@@ -13,8 +13,10 @@ bool Chip8State::load_rom(const std::string &file_path) {
     clear_screen();
     pc = 0x200;
     v.fill(0);
-    sp = 0;
     i = 0;
+
+    stack.fill(0);
+    sp = 0;
 
 
     std::ifstream file (file_path, std::ios::binary | std::ios::ate);
@@ -135,18 +137,28 @@ void Chip8State::decode(std::uint16_t instruction) {
             if (instruction == 0x00E0) { // CLS
                 clear_screen();
             } else if (instruction == 0x00EE) { // RET
-                // TODO
+                sp--;
+                pc = stack[sp];
             }
             break;
         case 1: // JUMP
             pc = nnn;
             break;
-        // case 2:
-        //     break;
-        // case 3:
-        //     break;
-        // case 4:
-        //     break;
+        case 2:
+            stack[sp] = pc;
+            sp++;
+            pc = nnn;
+            break;
+        case 3:
+            if (v[x] == nn) {
+                pc += 2;
+            }
+            break;
+        case 4:
+            if (x == 1 && v[x] != nn) {
+                pc += 2;
+            }
+            break;
         // case 5:
         //     break;
         case 6:
@@ -158,8 +170,11 @@ void Chip8State::decode(std::uint16_t instruction) {
         case 8:
             run_math(n, x, y);
             break;
-        // case 9:
-        //     break;
+        case 9:
+            if (n == 0 && v[x] != v[y]) {
+                pc += 2;
+            }
+            break;
         case 0xA:
             i = nnn;
             break;
@@ -191,8 +206,16 @@ void Chip8State::decode(std::uint16_t instruction) {
         }
         // case 0xE:
         //     break;
-        // case 0xF:
-        //     break;
+        case 0xF:
+            switch (n) {
+                case 0xE:
+                    i += v[x];
+                    break;
+                default:
+                    std::cout << "unknown 0xFx.. instruction:" << std::setw(4) << std::hex << std::uppercase << std::setfill('0') << instruction << "\n";
+                    break;
+            }
+            break;
         default:
             std::cout << "unknown instruction:" << std::setw(4) << std::hex << std::uppercase << std::setfill('0') << instruction << "\n";
             break;
