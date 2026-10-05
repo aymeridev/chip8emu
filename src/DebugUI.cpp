@@ -57,7 +57,6 @@ namespace {
             return;
         }
 
-
         ImGui::ColorEdit3("background", appstate->background_color.data());
         ImGui::ColorEdit3("foreground", appstate->foreground_color.data());
 
@@ -91,7 +90,7 @@ void DebugUI::update() {
 
 
 
-    if (ImGui::Button("next")) {
+    if (ImGui::Button("Next")) {
         chip8_state.fetch();
     }
 

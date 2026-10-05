@@ -14,11 +14,10 @@
 using namespace std::string_literals;
 
 
-constexpr float pixel_scale = 24.0f;
 
 
 
-SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
+SDL_AppResult SDL_AppInit(void **appstate, int, char *[]) {
     auto* state = new AppState;
     *appstate = state;
 
@@ -50,6 +49,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
     state->chip8_state.fetch();
 
     state->debug_ui = std::make_unique<DebugUI>(state);
+    state->last_tick = static_cast<float>(SDL_GetTicks());
 
     return SDL_APP_CONTINUE;
 }
@@ -67,7 +67,22 @@ SDL_AppResult SDL_AppEvent(void *, SDL_Event *event) {
 
 SDL_AppResult SDL_AppIterate(void *appstate) {
 
-    const auto* state = static_cast<AppState*>(appstate);
+    auto* state = static_cast<AppState*>(appstate);
+
+
+    const auto tick_now = static_cast<float>(SDL_GetTicks());
+
+
+    state->frame_timer -= (tick_now - state->last_tick) / 1000.0f;
+    state->last_tick = tick_now;
+
+    std::cout << state->frame_timer << "\n";
+
+    if (state->frame_timer <= 0.0f) {
+        std::cout << "fetch";
+        state->chip8_state.fetch();
+        state->frame_timer = frame_total_timer;
+    }
 
     SDL_SetRenderScale(state->renderer, 1.0f, 1.0f);
     SDL_SetRenderDrawColorFloat(state->renderer,
@@ -84,8 +99,8 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
         for (int x = 0; x < screen_width; ++x) {
             if (state->chip8_state.screen[y][x]) {
                 const SDL_FRect rect = {
-                    static_cast<float>(x) * pixel_scale, static_cast<float>(y) * pixel_scale,
-                    pixel_scale, pixel_scale
+                    static_cast<float>(x) * state->pixel_scale, static_cast<float>(y) * state->pixel_scale,
+                    state->pixel_scale, state->pixel_scale
                 };
                 SDL_RenderFillRect(state->renderer, &rect);
             }
