@@ -2,7 +2,8 @@
 
 #include <array>
 #include <string>
-
+#include <span>
+#include <cstdint>
 
 constexpr int screen_width = 64;
 constexpr int screen_height = 32;
@@ -24,9 +25,21 @@ public:
     std::array<std::uint8_t, 4096> memory;
     bool screen[screen_height][screen_width];
 
+    void reset();
     bool load_rom(const std::string &file_path);
-    void fetch();
-    void decode(std::uint16_t instruction);
+    bool load_rom(std::span<uint8_t> &rom_data);
+
+
+    /**
+     *
+     * @return return true if the ROM has reached the end of the memory.
+     */
+    bool cycle();
+
+    // fetch 4 bits from memory
+    std::uint16_t fetch();
+    void decode_and_execute(std::uint16_t instruction);
+
 
 private:
     void clear_screen();

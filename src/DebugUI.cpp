@@ -77,8 +77,8 @@ namespace {
         ImGui::Text("test roms");
         if (ImGui::BeginListBox("rom list")) {
             for (const auto path : test_roms) {
-                if (ImGui::Selectable(path.data(), ("tests/"s + path.data()) == appstate->chip8_state.rom_file_path)) {
-                    appstate->chip8_state.load_rom("tests/"s + path.data());
+                if (ImGui::Selectable(path.data(), ("roms/"s + path.data()) == appstate->chip8_state.rom_file_path)) {
+                    appstate->chip8_state.load_rom("roms/"s + path.data());
                 }
             }
             ImGui::EndListBox();
@@ -116,10 +116,13 @@ void DebugUI::update() {
 
 
 
+    ImGui::Checkbox("pause", &appstate->pause);
 
+    if (!appstate->pause) ImGui::BeginDisabled();
     if (ImGui::Button("Next")) {
         chip8_state.fetch();
     }
+    if (!appstate->pause) ImGui::EndDisabled();
 
     ImGui::End();
 

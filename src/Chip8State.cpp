@@ -2,13 +2,10 @@
 #include <fstream>
 #include <string>
 #include <iomanip>
-#include <cstdint>
 
 #include "Chip8State.hpp"
 
-
-bool Chip8State::load_rom(const std::string &file_path) {
-    // reset
+void Chip8State::reset() {
     memory.fill(0);
     clear_screen();
     pc = 0x200;
@@ -18,6 +15,10 @@ bool Chip8State::load_rom(const std::string &file_path) {
     stack.fill(0);
     sp = 0;
 
+}
+
+bool Chip8State::load_rom(const std::string &file_path) {
+    reset();
 
     std::ifstream file (file_path, std::ios::binary | std::ios::ate);
     if (!file) {
@@ -44,14 +45,32 @@ bool Chip8State::load_rom(const std::string &file_path) {
     return true;
 }
 
+bool Chip8State::load_rom(std::span<uint8_t> &rom_data) {
+    clear_screen();
+    if (rom_data.size() > 4096 - 0x200) {
+        std::cerr << "load_rom: not enough memory";
+        return false;
+    }
+    std::ranges::copy(rom_data, memory.begin() + 0x200);
+    return true;
+}
 
-void Chip8State::fetch() {
+
+std::uint16_t Chip8State::fetch() {
     const std::uint8_t left = memory[pc];
     const std::uint8_t right = memory[pc + 1];
     const std::uint16_t instr = (left << 8) | right;
 
-    decode(instr);
     pc += 2;
+
+    return instr;
+}
+
+bool Chip8State::cycle() {
+    if (pc >= 4094) return false;
+    const auto instr = fetch();
+    decode_and_execute(instr);
+    return pc >= 4094;
 }
 
 
@@ -116,7 +135,7 @@ void Chip8State::run_math(std::uint8_t n, std::uint8_t x, std::uint8_t y) {
     }
 }
 
-void Chip8State::decode(std::uint16_t instruction) {
+void Chip8State::decode_and_execute(std::uint16_t instruction) {
 
     const std::uint16_t nnn = instruction & 0x0FFF;
     const std::uint16_t nn = instruction & 0x00FF;

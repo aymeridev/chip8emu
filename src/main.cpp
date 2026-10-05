@@ -73,7 +73,9 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     state->last_tick = tick_now;
 
     if (state->frame_timer <= 0.0f) {
-        state->chip8_state.fetch();
+        if (!state->chip8_state.cycle()) {
+            state->pause = true;
+        }
         state->frame_timer = frame_total_timer;
     }
 
