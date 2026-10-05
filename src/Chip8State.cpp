@@ -8,6 +8,15 @@
 
 
 bool Chip8State::load_rom(const std::string &file_path) {
+    // reset
+    memory.fill(0);
+    clear_screen();
+    pc = 0x200;
+    v.fill(0);
+    sp = 0;
+    i = 0;
+
+
     std::ifstream file (file_path, std::ios::binary | std::ios::ate);
     if (!file) {
         std::cerr << "load_rom: cannot open " << file_path << "\n";
@@ -52,7 +61,7 @@ void Chip8State::decode(std::uint16_t instruction) {
     const std::uint8_t x = (instruction >> 8) & 0x0F;
     const std::uint8_t y = (instruction >> 4) & 0x0F;
 
-    std::cout << std::setw(4) << std::hex << std::uppercase << std::setfill('0') << instruction << "\n";
+    // std::cout << std::setw(4) << std::hex << std::uppercase << std::setfill('0') << instruction << "\n";
     // std::cout << std::setw(4) << std::hex << std::uppercase << std::setfill('0') << "nnn: " << nnn << "\n";
     // std::cout << std::setw(4) << std::hex << std::uppercase << std::setfill('0') << "nn : " << nn << "\n";
     // std::cout << std::setw(4) << std::hex << std::uppercase << std::setfill('0') << "n  : " << +n << "\n";
@@ -60,15 +69,10 @@ void Chip8State::decode(std::uint16_t instruction) {
 
     // std::cout << std::setw(4) << std::hex << std::uppercase << std::setfill('0') << nnn << "\n";
 
-    std::cout << instruction << "\n";
     switch (instruction >> 12) { // group of instruction
         case 0:
             if (instruction == 0x00E0) { // CLS
-                for (auto & row_y : screen) {
-                    for (bool & pixel_x : row_y) {
-                        pixel_x = false;
-                    }
-                }
+                clear_screen();
             } else if (instruction == 0x00EE) { // RET
                 // TODO
             }
@@ -85,7 +89,6 @@ void Chip8State::decode(std::uint16_t instruction) {
         // case 5:
         //     break;
         case 6:
-            std::cout << "update [" << x << "] with" << nn << "\n";
             v[x] = nn;
             break;
         case 7:
@@ -109,7 +112,6 @@ void Chip8State::decode(std::uint16_t instruction) {
             const int cx = v[x] % screen_width;
             const int cy = v[y] % screen_height;
             v[0xF] = 0;
-            std::cout << "DISPLAY " << cx << "/" << cy << '\n';
             for (int mem_y = 0; mem_y < n; ++mem_y) {
                 const std::uint8_t row = memory[i + mem_y];
 
@@ -133,5 +135,13 @@ void Chip8State::decode(std::uint16_t instruction) {
         // default:
         //     throw std::runtime_error("Unknown instruction");
         //     break;
+    }
+}
+
+void Chip8State::clear_screen() {
+    for (auto & row_y : screen) {
+        for (bool & pixel_x : row_y) {
+            pixel_x = false;
+        }
     }
 }

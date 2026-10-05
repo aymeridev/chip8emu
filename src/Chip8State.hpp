@@ -24,4 +24,7 @@ public:
     bool load_rom(const std::string &file_path);
     void fetch();
     void decode(std::uint16_t instruction);
+
+private:
+    void clear_screen();
 };

@@ -13,10 +13,6 @@
 
 using namespace std::string_literals;
 
-
-
-
-
 SDL_AppResult SDL_AppInit(void **appstate, int, char *[]) {
     auto* state = new AppState;
     *appstate = state;
@@ -76,10 +72,7 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     state->frame_timer -= (tick_now - state->last_tick) / 1000.0f;
     state->last_tick = tick_now;
 
-    std::cout << state->frame_timer << "\n";
-
     if (state->frame_timer <= 0.0f) {
-        std::cout << "fetch";
         state->chip8_state.fetch();
         state->frame_timer = frame_total_timer;
     }

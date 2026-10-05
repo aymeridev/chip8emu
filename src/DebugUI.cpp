@@ -3,9 +3,12 @@
 #include "AppState.hpp"
 #include "DebugUI.hpp"
 
+#include "example_roms.hpp"
 #include "imgui.h"
 #include "imgui_impl_sdl3.h"
 #include "imgui_impl_sdlrenderer3.h"
+
+using namespace std::string_literals;
 
 DebugUI::DebugUI(AppState *appstate) :
     appstate(appstate), chip8_state(appstate->chip8_state) {
@@ -62,6 +65,30 @@ namespace {
 
         ImGui::End();
     }
+
+    void draw_rom_switcher(AppState* appstate) {
+        bool p_switch_open = true;
+
+        if (!ImGui::Begin("Switch ROM", &p_switch_open)) {
+            ImGui::End();
+            return;
+        }
+
+        ImGui::Text("test roms");
+        if (ImGui::BeginListBox("rom list")) {
+            for (const auto path : test_roms) {
+                if (ImGui::Selectable(path.data(), ("tests/"s + path.data()) == appstate->chip8_state.rom_file_path)) {
+                    appstate->chip8_state.load_rom("tests/"s + path.data());
+                }
+            }
+            ImGui::EndListBox();
+        }
+        ImGui::Text("example roms");
+
+
+
+        ImGui::End();
+    }
 }
 
 void DebugUI::update() {
@@ -72,7 +99,7 @@ void DebugUI::update() {
 
 
     bool p_main_open = true;
-    // ImGui::ShowDemoWindow(&p_main_open);
+    ImGui::ShowDemoWindow(&p_main_open);
     if (!ImGui::Begin("CHIP-8 Debug", &p_main_open)) {
         ImGui::End();
         return;
@@ -99,6 +126,7 @@ void DebugUI::update() {
 
     draw_memory_viewer(chip8_state);
     draw_display_settings(appstate);
+    draw_rom_switcher(appstate);
 
 
     ImGui::Render();
