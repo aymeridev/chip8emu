@@ -33,6 +33,13 @@ SDL_AppResult SDL_AppInit(void **appstate, int, char *[]) {
         return SDL_APP_FAILURE;
     }
 
+    state->texture = SDL_CreateTexture(state->renderer, SDL_PIXELFORMAT_ABGR32, SDL_TEXTUREACCESS_STREAMING, 64, 32);
+
+    // prevent blur
+    if (!SDL_SetTextureScaleMode(state->texture, SDL_SCALEMODE_NEAREST)) {
+        SDL_Log("Couldn't set texture scale mode: %s", SDL_GetError());
+    }
+
     if (!SDL_SetRenderVSync(state->renderer, 1)) {
         SDL_Log("VSync not available: %s", SDL_GetError());
     }
@@ -46,6 +53,8 @@ SDL_AppResult SDL_AppInit(void **appstate, int, char *[]) {
 
     state->debug_ui = std::make_unique<DebugUI>(state);
     state->last_tick = static_cast<float>(SDL_GetTicks());
+
+    // std::cout << std::hex << color_to_uint32(state->foreground_color) << "\n";
 
     return SDL_APP_CONTINUE;
 }
@@ -62,12 +71,9 @@ SDL_AppResult SDL_AppEvent(void *, SDL_Event *event) {
 }
 
 SDL_AppResult SDL_AppIterate(void *appstate) {
-
     auto* state = static_cast<AppState*>(appstate);
 
-
     const auto tick_now = static_cast<float>(SDL_GetTicks());
-
 
     state->frame_timer -= (tick_now - state->last_tick) / 1000.0f;
     state->last_tick = tick_now;
@@ -90,24 +96,27 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
          state->foreground_color[0],
         state->foreground_color[1],
         state->foreground_color[2],1.0f);
+
     for (int y = 0; y < screen_height; y++) {
         for (int x = 0; x < screen_width; ++x) {
-            if (state->chip8_state.screen[y][x]) {
-                const SDL_FRect rect = {
-                    static_cast<float>(x) * state->pixel_scale, static_cast<float>(y) * state->pixel_scale,
-                    state->pixel_scale, state->pixel_scale
-                };
-                SDL_RenderFillRect(state->renderer, &rect);
-            }
+            state->pixels[y * screen_width + x] = state->chip8_state.screen[y][x] ?
+            0xFFFFFFFF : 0x00000000;
         }
     }
+    SDL_UpdateTexture(state->texture, nullptr, state->pixels, screen_width * sizeof(Uint32));
 
-
-    if (state->debug_ui) state->debug_ui->update();
+    if (state->debug_ui) {
+        state->debug_ui->update();
+    } else {
+        SDL_RenderClear(state->renderer);
+        SDL_RenderTexture(state->renderer, state->texture, nullptr, nullptr);
+    }
     SDL_RenderPresent(state->renderer);
     return SDL_APP_CONTINUE;
 }
 
 void SDL_AppQuit(void *appstate, SDL_AppResult) {
-    delete static_cast<AppState*>(appstate);
+    const auto state = static_cast<AppState*>(appstate);
+    SDL_DestroyTexture(state->texture);
+    delete state;
 }

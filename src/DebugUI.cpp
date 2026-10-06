@@ -3,6 +3,9 @@
 #include "AppState.hpp"
 #include "DebugUI.hpp"
 
+#include <imgui_internal.h>
+#include <iostream>
+
 #include "example_roms.hpp"
 #include "imgui.h"
 #include "imgui_impl_sdl3.h"
@@ -27,8 +30,16 @@ DebugUI::DebugUI(AppState *appstate) :
 }
 
 namespace {
-    void draw_memory_viewer(const Chip8State &state) {
+
+    void draw_logs(const ImVec2 pos, const ImVec2 size) {
+
+    }
+
+    void draw_memory_viewer(const Chip8State &state, const ImVec2 pos, const ImVec2 size) {
         bool p_memory_open = true;
+
+        ImGui::SetNextWindowPos(pos);
+        ImGui::SetNextWindowSize(size);
         if (!ImGui::Begin("Memory", &p_memory_open)) {
             ImGui::End();
             return;
@@ -48,6 +59,42 @@ namespace {
             }
             ImGui::EndTable();
         }
+
+        ImGui::End();
+    }
+
+    void draw_main_settings(AppState* appstate, const ImVec2 pos, const ImVec2 size) {
+        bool p_main_open = true;
+        // ImGui::ShowDemoWindow(&p_main_open);
+
+        constexpr ImGuiWindowFlags flags = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize;
+
+        ImGui::SetNextWindowPos(pos);
+        ImGui::SetNextWindowSize(size);
+        if (!ImGui::Begin("CHIP-8 Debug", &p_main_open, flags)) {
+            ImGui::End();
+            return;
+        }
+
+        ImGui::Text("current rom: %s", appstate->chip8_state.rom_file_path.c_str());
+        ImGui::Text("program counter: %d", appstate->chip8_state.pc);
+        ImGui::Text("i: %d", appstate->chip8_state.i);
+        ImGui::Spacing();
+        ImGui::Text("Registers");
+        for (const auto& value : appstate->chip8_state.v) {
+            ImGui::Text("%d", value);
+            ImGui::SameLine();
+        }
+
+
+
+        ImGui::Checkbox("pause", &appstate->pause);
+
+        if (!appstate->pause) ImGui::BeginDisabled();
+        if (ImGui::Button("Next")) {
+            appstate->chip8_state.fetch();
+        }
+        if (!appstate->pause) ImGui::EndDisabled();
 
         ImGui::End();
     }
@@ -85,8 +132,22 @@ namespace {
         }
         ImGui::Text("example roms");
 
+        ImGui::End();
+    }
 
-
+    // TODO : find a way to not use DrawList
+    void draw_screen(AppState* appstate, const ImVec2 pos, const ImVec2 size) {
+        ImGui::SetNextWindowPos(pos);
+        ImGui::SetNextWindowSize(size);
+        bool open = true;
+        ImGui::Begin("Screen", &open, ImGuiWindowFlags_NoTitleBar);
+        ImDrawList* draw_list = ImGui::GetWindowDrawList();
+        const ImVec2 p = ImGui::GetCursorScreenPos();
+        draw_list->AddCallback(ImGui::GetPlatformIO().DrawCallback_SetSamplerNearest);
+        draw_list->AddImage(ImTextureRef(
+            reinterpret_cast<ImTextureID>(appstate->texture)
+        ), ImVec2(p.x, p.y),
+        ImVec2(p.x + size.x, p.y + size.y));
         ImGui::End();
     }
 }
@@ -96,42 +157,22 @@ void DebugUI::update() {
     ImGui_ImplSDL3_NewFrame();
     ImGui::NewFrame();
 
+    const ImGuiViewport* vp = ImGui::GetMainViewport();
+    const ImVec2 pos = vp->WorkPos;
+    const ImVec2 size = vp->WorkSize;
 
-
-    bool p_main_open = true;
-    ImGui::ShowDemoWindow(&p_main_open);
-    if (!ImGui::Begin("CHIP-8 Debug", &p_main_open)) {
-        ImGui::End();
-        return;
-    }
-
-    ImGui::Text("current rom: %s", chip8_state.rom_file_path.c_str());
-    ImGui::Text("program counter: %d", chip8_state.pc);
-    ImGui::Text("i: %d", chip8_state.i);
-    ImGui::Spacing();
-    ImGui::Text("Registers");
-    for (const auto& value : chip8_state.v) {
-        ImGui::Text("%d", value);
-    }
-
-
-
-    ImGui::Checkbox("pause", &appstate->pause);
-
-    if (!appstate->pause) ImGui::BeginDisabled();
-    if (ImGui::Button("Next")) {
-        chip8_state.fetch();
-    }
-    if (!appstate->pause) ImGui::EndDisabled();
-
-    ImGui::End();
-
-
-    draw_memory_viewer(chip8_state);
+    draw_memory_viewer(chip8_state, ImVec2(size.x - 360.0f, pos.y), ImVec2(360.0f, size.y));
     draw_display_settings(appstate);
     draw_rom_switcher(appstate);
 
+    const float screen_window_width = size.x - 720;
+    const float screen_window_height = screen_window_width / 2.0f;
+    draw_screen(appstate, ImVec2(360.0f, 0.0f),
+        ImVec2(screen_window_width, screen_window_height));
 
+    draw_main_settings(appstate,
+        ImVec2(360.0f, screen_window_height),
+        ImVec2(screen_window_width, 64));
     ImGui::Render();
 
     const ImGuiIO& io = ImGui::GetIO();

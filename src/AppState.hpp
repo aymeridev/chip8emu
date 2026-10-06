@@ -15,7 +15,9 @@ public:
     Chip8State chip8_state = {};
     std::unique_ptr<DebugUI> debug_ui = nullptr;
     std::array<float, 3> background_color { 0, 0, 0 };
-    std::array<float, 3> foreground_color { 1.0f, 1.0f, 1.0f };
+    std::array<float, 3> foreground_color { 0.8f, 0.9f, 0.4f };
+    SDL_Texture *texture = nullptr;
+    Uint32 pixels[screen_width * screen_height] = {};
 
     float pixel_scale = 24.0f;
     float frame_timer = frame_total_timer;
