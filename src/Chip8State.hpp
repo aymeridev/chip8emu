@@ -5,6 +5,7 @@
 #include <span>
 #include <random>
 #include <cstdint>
+#include <initializer_list>
 
 constexpr int screen_width = 64;
 constexpr int screen_height = 32;
@@ -16,15 +17,15 @@ public:
     std::array<std::uint8_t, 16> v; // general registers
     uint16_t i; // store memory address
     uint16_t pc = 0x200; // program counter
-    std::mt19937 rng;
+    std::mt19937 rng = std::mt19937(std::random_device{}());
 
     std::array<std::uint16_t, 16> stack;
 
     // stack pointer
     uint8_t sp = 0;
 
-    uint8_t delay_timer;
-    uint8_t sound_timer;
+    uint8_t delay_timer = 0;
+    uint8_t sound_timer = 0;
 
     void tick_timers();
 
@@ -49,5 +50,6 @@ public:
 
 private:
     void clear_screen();
+    void set_memory_at(uint8_t address, std::initializer_list<const uint8_t>);
     void run_math(std::uint8_t n, std::uint8_t x, std::uint8_t y);
 };

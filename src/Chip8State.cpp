@@ -15,10 +15,30 @@ void Chip8State::reset() {
     delay_timer = 0;
     sound_timer = 0;
 
-
     stack.fill(0);
     sp = 0;
+    /* 0 */ set_memory_at(0x050,      { 0xF0, 0x90, 0x90, 0x90, 0xF0 });
+    /* 1 */ set_memory_at(0x050 + 5,  { 0x20, 0x60, 0x20, 0x20, 0x70 });
+    /* 2 */ set_memory_at(0x050 + 10, { 0xF0, 0x10, 0xF0, 0x80, 0xF0 });
+    /* 3 */ set_memory_at(0x050 + 15, { 0xF0, 0x10, 0xF0, 0x10, 0xF0 });
+    /* 4 */ set_memory_at(0x050 + 20, { 0x90, 0x90, 0xF0, 0x10, 0x10 });
+    /* 5 */ set_memory_at(0x050 + 25, { 0xF0, 0x80, 0xF0, 0x10, 0xF0 });
+    /* 6 */ set_memory_at(0x050 + 30, { 0xF0, 0x80, 0xF0, 0x90, 0xF0 });
+    /* 7 */ set_memory_at(0x050 + 35, { 0xF0, 0x10, 0x20, 0x40, 0x40 });
+    /* 8 */ set_memory_at(0x050 + 40, { 0xF0, 0x90, 0xF0, 0x90, 0xF0 });
+    /* 9 */ set_memory_at(0x050 + 45, { 0xF0, 0x90, 0xF0, 0x10, 0xF0 });
+    /* A */ set_memory_at(0x050 + 50, { 0xF0, 0x80, 0xF0, 0x90, 0x90 });
+    /* B */ set_memory_at(0x050 + 55, { 0xE0, 0x90, 0xE0, 0x90, 0xE0 });
+    /* C */ set_memory_at(0x050 + 60, { 0xF0, 0x80, 0x80, 0x80, 0xF0 });
+    /* D */ set_memory_at(0x050 + 65, { 0xE0, 0x90, 0x90, 0x90, 0xE0 });
+    /* E */ set_memory_at(0x050 + 70, { 0xF0, 0x80, 0xF0, 0x80, 0xF0 });
+    /* F */ set_memory_at(0x050 + 75, { 0xF0, 0x80, 0xF0, 0x80, 0x80 });
+}
 
+void Chip8State::set_memory_at(const uint8_t address, const std::initializer_list<const uint8_t> values) {
+    for (int idx = 0; idx < values.size(); ++idx) {
+        memory[address + idx] = std::data(values)[idx];
+    }
 }
 
 bool Chip8State::load_rom(const std::string &file_path) {
@@ -50,7 +70,7 @@ bool Chip8State::load_rom(const std::string &file_path) {
 }
 
 bool Chip8State::load_rom(std::span<uint8_t> &rom_data) {
-    clear_screen();
+    reset();
     if (rom_data.size() > 4096 - 0x200) {
         std::cerr << "load_rom: not enough memory";
         return false;
@@ -58,6 +78,7 @@ bool Chip8State::load_rom(std::span<uint8_t> &rom_data) {
     std::ranges::copy(rom_data, memory.begin() + 0x200);
     return true;
 }
+
 
 
 std::uint16_t Chip8State::fetch() {
@@ -255,6 +276,19 @@ void Chip8State::decode_and_execute(std::uint16_t instruction) {
                 case 0x18:
                     sound_timer = v[x];
                     break;
+                case 0x29:
+                    sound_timer = v[x];
+                    break;
+                case 0x33:
+                    sound_timer = v[x];
+                    break;
+                case 0x55:
+                    sound_timer = v[x];
+                    break;
+                case 0x65:
+                    sound_timer = v[x];
+                    break;
+
                 case 0x1E:
                     i += v[x];
                     break;

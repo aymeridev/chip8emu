@@ -46,7 +46,15 @@ namespace {
         }
 
         if (ImGui::BeginTable("mem", 9)) {
-            for (int row = 0x200; row < 4096; row += 16) {
+            ImGui::TableNextRow();
+            ImGui::TableSetColumnIndex(0);
+            ImGui::Text("INTERNAL");
+            for (int row = 0; row < 4096; row += 16) {
+                if (row == 0x200) {
+                    ImGui::TableNextRow();
+                    ImGui::TableSetColumnIndex(0);
+                    ImGui::Text("CART DATA START");
+                }
                 ImGui::TableNextRow();
                 ImGui::TableSetColumnIndex(0);
                 ImGui::Text("%d", row);
