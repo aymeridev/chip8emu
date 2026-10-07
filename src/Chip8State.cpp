@@ -211,8 +211,12 @@ void Chip8State::decode_and_execute(std::uint16_t instruction) {
                 const std::uint8_t row = memory[i + mem_y];
 
                 for (int sc_x = 0; sc_x < 8; ++sc_x) {
-                    const int dx = std::min(cx + sc_x, screen_width);
-                    const int dy = std::min(cy + mem_y, screen_height);
+                    const int dx = cx + sc_x;
+                    const int dy = cy + mem_y;
+
+                    if (dx >= screen_width) break;
+                    if (dy >= screen_height) return;
+
                     const bool new_pixel = (row >> (7 - sc_x)) & 1;
                     if (screen[dy][dx] && !new_pixel) {
                         v[0xF] = 1;

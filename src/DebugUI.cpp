@@ -116,7 +116,7 @@ namespace {
     void draw_rom_switcher(AppState* appstate) {
         bool p_switch_open = true;
 
-        if (!ImGui::Begin("Switch ROM", &p_switch_open)) {
+        if (!ImGui::Begin("Switch &ROM", &p_switch_open)) {
             ImGui::End();
             return;
         }
