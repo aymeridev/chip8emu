@@ -5,11 +5,12 @@
 #include <memory>
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
+#include <string>
 
 #include "AppState.hpp"
-#include "DebugUI.hpp"
-#include "string"
 #include "Chip8State.hpp"
+#include "DebugUI.hpp"
+#include "utils_color.hpp"
 
 using namespace std::string_literals;
 
@@ -54,8 +55,6 @@ SDL_AppResult SDL_AppInit(void **appstate, int, char *[]) {
     state->debug_ui = std::make_unique<DebugUI>(state);
     state->last_tick = static_cast<float>(SDL_GetTicks());
 
-    // std::cout << std::hex << color_to_uint32(state->foreground_color) << "\n";
-
     return SDL_APP_CONTINUE;
 }
 
@@ -86,28 +85,29 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     }
 
     SDL_SetRenderScale(state->renderer, 1.0f, 1.0f);
-    SDL_SetRenderDrawColorFloat(state->renderer,
-         state->background_color[0],
-        state->background_color[1],
-        state->background_color[2], 1.0f);
-    SDL_RenderClear(state->renderer);
-
-    SDL_SetRenderDrawColorFloat(state->renderer,
-         state->foreground_color[0],
-        state->foreground_color[1],
-        state->foreground_color[2],1.0f);
 
     for (int y = 0; y < screen_height; y++) {
         for (int x = 0; x < screen_width; ++x) {
             state->pixels[y * screen_width + x] = state->chip8_state.screen[y][x] ?
-            0xFFFFFFFF : 0x00000000;
+            color_to_uint32(state->foreground_color) : color_to_uint32(state->background_color);
         }
     }
     SDL_UpdateTexture(state->texture, nullptr, state->pixels, screen_width * sizeof(Uint32));
 
     if (state->debug_ui) {
+        SDL_RenderClear(state->renderer);
         state->debug_ui->update();
     } else {
+        SDL_SetRenderDrawColorFloat(state->renderer,
+             state->background_color[0],
+            state->background_color[1],
+            state->background_color[2], 1.0f);
+        SDL_RenderClear(state->renderer);
+
+        SDL_SetRenderDrawColorFloat(state->renderer,
+             state->foreground_color[0],
+            state->foreground_color[1],
+            state->foreground_color[2],1.0f);
         SDL_RenderClear(state->renderer);
         SDL_RenderTexture(state->renderer, state->texture, nullptr, nullptr);
     }
