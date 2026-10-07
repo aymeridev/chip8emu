@@ -174,12 +174,12 @@ void Chip8State::decode_and_execute(std::uint16_t instruction) {
             }
             break;
         case 4:
-            if (x == 1 && v[x] != nn) {
+            if (v[x] != nn) {
                 pc += 2;
             }
             break;
-        // case 5:
-        //     break;
+        case 5:
+            break;
         case 6:
             v[x] = nn;
             break;
@@ -211,8 +211,8 @@ void Chip8State::decode_and_execute(std::uint16_t instruction) {
                 const std::uint8_t row = memory[i + mem_y];
 
                 for (int sc_x = 0; sc_x < 8; ++sc_x) {
-                    const int dx = cx + sc_x;
-                    const int dy = cy + mem_y;
+                    const int dx = std::min(cx + sc_x, screen_width);
+                    const int dy = std::min(cy + mem_y, screen_height);
                     const bool new_pixel = (row >> (7 - sc_x)) & 1;
                     if (screen[dy][dx] && !new_pixel) {
                         v[0xF] = 1;
@@ -226,8 +226,11 @@ void Chip8State::decode_and_execute(std::uint16_t instruction) {
         // case 0xE:
         //     break;
         case 0xF:
-            switch (n) {
-                case 0xE:
+            switch (nn) {
+                case 0x00:
+                    i = fetch();
+                    break;
+                case 0x1E:
                     i += v[x];
                     break;
                 default:
