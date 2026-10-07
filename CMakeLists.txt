@@ -31,6 +31,7 @@ target_link_libraries(imgui PUBLIC SDL3::SDL3)
 
 add_library(chip8core src/Chip8State.cpp
         src/Chip8State.hpp
+        src/utils_color.hpp
 )
 
 
