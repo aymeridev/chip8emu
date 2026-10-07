@@ -36,6 +36,7 @@ void Chip8State::reset() {
     sound_timer = 0;
 
     stack.fill(0);
+    std::ranges::copy(font, memory.begin() + 0x50);
     sp = 0;
 }
 
@@ -275,10 +276,12 @@ void Chip8State::decode_and_execute(std::uint16_t instruction) {
                     sound_timer = v[x];
                     break;
                 case 0x29:
-                    sound_timer = v[x];
+                    i = 0x50 + (v[x] % 16) * 5;
                     break;
                 case 0x33:
-                    sound_timer = v[x];
+                    if (i < 4096) memory[i] = static_cast<uint8_t>(v[x] / 100);
+                    if (i < 4095) memory[i + 1] = static_cast<uint8_t>(std::floor(v[x] / 10 % 10));
+                    if (i < 4094) memory[i + 2] = v[x] % 10;
                     break;
                 case 0x55:
                     sound_timer = v[x];

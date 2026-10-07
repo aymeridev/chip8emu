@@ -44,7 +44,8 @@ add_executable(chip8emu src/main.cpp
 add_executable(chip8tests
         tests/test_main.cpp
         tests/test_utils.hpp
-        tests/test_timers.cpp)
+        tests/test_timers.cpp
+        tests/test_font.cpp)
 
 target_link_directories(chip8tests PRIVATE chip8core)
 target_link_libraries(chip8tests PRIVATE chip8core)
