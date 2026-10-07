@@ -12,6 +12,8 @@ void Chip8State::reset() {
     v.fill(0);
     i = 0;
 
+
+
     stack.fill(0);
     sp = 0;
 
@@ -81,12 +83,15 @@ void Chip8State::run_math(std::uint8_t n, std::uint8_t x, std::uint8_t y) {
             break;
         case 1: // or
             v[x] |= v[y];
+            v[0xF] = 0;
             break;
         case 2: // and
             v[x] &= v[y];
+            v[0xF] = 0;
             break;
         case 3: // xor
             v[x] ^= v[y];
+            v[0xF] = 0;
             break;
         case 4: {
             // add, if overflow set vF to 1 else 0
@@ -179,6 +184,9 @@ void Chip8State::decode_and_execute(std::uint16_t instruction) {
             }
             break;
         case 5:
+            if (n == 0 && v[x] == v[y]) pc += 2;
+            /* XO-CHIP */ if (n == 2) break;
+            /* XO-CHIP */ if (n == 3) break;
             break;
         case 6:
             v[x] = nn;
@@ -199,8 +207,9 @@ void Chip8State::decode_and_execute(std::uint16_t instruction) {
             break;
         // case 0xB:
         //     break;
-        // case 0xC:
-        //     break;
+        case 0xC:
+            v[x] = std::uniform_int_distribution<>(0, 255)(rng) & nn;
+            break;
         case 0xD: { // display
 
             // get coordinates

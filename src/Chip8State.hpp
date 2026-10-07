@@ -3,6 +3,7 @@
 #include <array>
 #include <string>
 #include <span>
+#include <random>
 #include <cstdint>
 
 constexpr int screen_width = 64;
@@ -15,6 +16,7 @@ public:
     std::array<std::uint8_t, 16> v; // general registers
     uint16_t i; // store memory address
     uint16_t pc = 0x200; // program counter
+    std::mt19937 rng;
 
     std::array<std::uint16_t, 16> stack;
 
