@@ -14,8 +14,8 @@ public:
     SDL_Renderer *renderer = nullptr;
     Chip8State chip8_state = {};
     std::unique_ptr<DebugUI> debug_ui = nullptr;
-    std::array<float, 3> background_color { 0, 0, 0 };
-    std::array<float, 3> foreground_color { 0.8f, 0.9f, 0.4f };
+    std::array<float, 3> background_color { 0.573f, 0.412f, 0.129f };
+    std::array<float, 3> foreground_color { 0.969f, 0.808f, 0.274f };
     SDL_Texture *texture = nullptr;
     Uint32 pixels[screen_width * screen_height] = {};
 
