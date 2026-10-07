@@ -6,7 +6,8 @@
 #include "DebugUI.hpp"
 
 
-constexpr float frame_total_timer = 1.0f / 20.0f;
+constexpr float cycle_total_timer = 1.0f / 60.0f;
+constexpr float tick_total_timer = 1.0f / 60.0f;
 
 class AppState {
 public:
@@ -20,7 +21,8 @@ public:
     Uint32 pixels[screen_width * screen_height] = {};
 
     float pixel_scale = 24.0f;
-    float frame_timer = frame_total_timer;
+    float cycle_timer = cycle_total_timer;
+    float tick_timer = tick_total_timer;
     float last_tick;
 
     bool pause = false;

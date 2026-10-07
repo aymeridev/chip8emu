@@ -23,6 +23,10 @@ public:
     // stack pointer
     uint8_t sp = 0;
 
+    uint8_t delay_timer;
+    uint8_t sound_timer;
+
+    void tick_timers();
 
     std::array<std::uint8_t, 4096> memory;
     bool screen[screen_height][screen_width];

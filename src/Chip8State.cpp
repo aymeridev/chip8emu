@@ -12,6 +12,8 @@ void Chip8State::reset() {
     v.fill(0);
     i = 0;
 
+    delay_timer = 0;
+    sound_timer = 0;
 
 
     stack.fill(0);
@@ -205,8 +207,9 @@ void Chip8State::decode_and_execute(std::uint16_t instruction) {
         case 0xA:
             i = nnn;
             break;
-        // case 0xB:
-        //     break;
+        case 0xB:
+            pc = (nnn + v[0]) & 0x0FFF;
+            break;
         case 0xC:
             v[x] = std::uniform_int_distribution<>(0, 255)(rng) & nn;
             break;
@@ -243,6 +246,15 @@ void Chip8State::decode_and_execute(std::uint16_t instruction) {
                 case 0x00:
                     i = fetch();
                     break;
+                case 0x07:
+                    v[x] = delay_timer;
+                    break;
+                case 0x15:
+                    delay_timer = v[x];
+                    break;
+                case 0x18:
+                    sound_timer = v[x];
+                    break;
                 case 0x1E:
                     i += v[x];
                     break;
@@ -255,6 +267,11 @@ void Chip8State::decode_and_execute(std::uint16_t instruction) {
             std::cout << "unknown instruction:" << std::setw(4) << std::hex << std::uppercase << std::setfill('0') << instruction << "\n";
             break;
     }
+}
+
+void Chip8State::tick_timers() {
+    if (delay_timer > 0) delay_timer--;
+    if (sound_timer >0) sound_timer--;
 }
 
 void Chip8State::clear_screen() {
