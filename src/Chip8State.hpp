@@ -15,7 +15,7 @@ public:
 
     std::string rom_file_path;
     std::array<std::uint8_t, 16> v; // general registers
-    uint16_t i; // store memory address
+    uint16_t i_reg; // store memory address
     uint16_t pc = 0x200; // program counter
     std::mt19937 rng = std::mt19937(std::random_device{}());
 

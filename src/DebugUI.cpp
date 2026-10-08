@@ -86,7 +86,7 @@ namespace {
 
         ImGui::Text("current rom: %s", appstate->chip8_state.rom_file_path.c_str());
         ImGui::Text("program counter: %d", appstate->chip8_state.pc);
-        ImGui::Text("i: %d", appstate->chip8_state.i);
+        ImGui::Text("i: %d", appstate->chip8_state.i_reg);
         ImGui::Spacing();
         ImGui::Text("Registers");
         for (const auto& value : appstate->chip8_state.v) {

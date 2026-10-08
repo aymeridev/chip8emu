@@ -30,7 +30,7 @@ void Chip8State::reset() {
     clear_screen();
     pc = 0x200;
     v.fill(0);
-    i = 0;
+    i_reg = 0;
 
     delay_timer = 0;
     sound_timer = 0;
@@ -225,7 +225,7 @@ void Chip8State::decode_and_execute(std::uint16_t instruction) {
             }
             break;
         case 0xA:
-            i = nnn;
+            i_reg = nnn;
             break;
         case 0xB:
             pc = (nnn + v[0]) & 0x0FFF;
@@ -240,7 +240,7 @@ void Chip8State::decode_and_execute(std::uint16_t instruction) {
             const int cy = v[y] % screen_height;
             v[0xF] = 0;
             for (int mem_y = 0; mem_y < n; ++mem_y) {
-                const std::uint8_t row = memory[i + mem_y];
+                const std::uint8_t row = memory[i_reg + mem_y];
 
                 for (int sc_x = 0; sc_x < 8; ++sc_x) {
                     const int dx = cx + sc_x;
@@ -264,7 +264,7 @@ void Chip8State::decode_and_execute(std::uint16_t instruction) {
         case 0xF:
             switch (nn) {
                 case 0x00:
-                    i = fetch();
+                    i_reg = fetch();
                     break;
                 case 0x07:
                     v[x] = delay_timer;
@@ -275,23 +275,29 @@ void Chip8State::decode_and_execute(std::uint16_t instruction) {
                 case 0x18:
                     sound_timer = v[x];
                     break;
-                case 0x29:
-                    i = 0x50 + (v[x] % 16) * 5;
+                case 0x29: // hex vX
+                    i_reg = 0x50 + (v[x] % 16) * 5;
                     break;
-                case 0x33:
-                    if (i < 4096) memory[i] = static_cast<uint8_t>(v[x] / 100);
-                    if (i < 4095) memory[i + 1] = static_cast<uint8_t>(std::floor(v[x] / 10 % 10));
-                    if (i < 4094) memory[i + 2] = v[x] % 10;
+                case 0x33: // bcd
+                    if (i_reg < 4096) memory[i_reg] = static_cast<uint8_t>(v[x] / 100);
+                    if (i_reg < 4095) memory[i_reg + 1] = static_cast<uint8_t>(std::floor(v[x] / 10 % 10));
+                    if (i_reg < 4094) memory[i_reg + 2] = v[x] % 10;
                     break;
-                case 0x55:
-                    sound_timer = v[x];
+                case 0x55: // save
+                    for (std::size_t idx = 0; idx <= x; ++idx) {
+                        if (i_reg + idx < 4096) memory[i_reg + idx] = v[idx];
+                    }
+                    i_reg += x + 1;
                     break;
-                case 0x65:
-                    sound_timer = v[x];
+                case 0x65: // load
+                    for (std::size_t idx = 0; idx <= x; ++idx) {
+                        if (i_reg + idx < 4096) v[idx] = memory[i_reg + idx];
+                    }
+                    i_reg += x + 1;
                     break;
 
                 case 0x1E:
-                    i += v[x];
+                    i_reg += v[x];
                     break;
                 default:
                     std::cout << "unknown 0xFx.. instruction:" << std::setw(4) << std::hex << std::uppercase << std::setfill('0') << instruction << "\n";

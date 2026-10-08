@@ -36,9 +36,9 @@ TEST_CASE("Fx29 points I at the font sprite of the low digit of Vx") {
     chip.cycle();
     chip.cycle();
 
-    CHECK(chip.i == 0x050 + 5 * 0xA);
-    CHECK(chip.memory[chip.i] == 0xF0); // first row of "A"
-    CHECK(chip.memory[chip.i + 1] == 0x90); // fails if "A" has the wrong byte
+    CHECK(chip.i_reg == 0x050 + 5 * 0xA);
+    CHECK(chip.memory[chip.i_reg] == 0xF0); // first row of "A"
+    CHECK(chip.memory[chip.i_reg + 1] == 0x90); // fails if "A" has the wrong byte
 }
 
 TEST_SUITE_END;
