@@ -23,6 +23,7 @@ public:
     std::array<bool, 16> keys = {};
 
     std::optional<uint8_t> register_listening_for_key;
+    bool waiting_for_vblank;
 
     std::array<std::uint16_t, 16> stack;
 

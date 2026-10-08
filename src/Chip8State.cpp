@@ -35,6 +35,8 @@ void Chip8State::reset() {
     delay_timer = 0;
     sound_timer = 0;
 
+    waiting_for_vblank = false;
+
     keys.fill(false);
     register_listening_for_key = std::nullopt;
 
@@ -106,9 +108,11 @@ bool Chip8State::cycle() {
 
     // see Fx0A : stop execution until the target key is pressed
     if (register_listening_for_key.has_value()) return true;
+
+    if (waiting_for_vblank) return true;
     const auto instr = fetch();
     decode_and_execute(instr);
-    return pc >= 4094;
+    return pc < 4094;
 }
 
 
@@ -265,12 +269,14 @@ void Chip8State::decode_and_execute(std::uint16_t instruction) {
                     if (dy >= screen_height) return;
 
                     const bool new_pixel = (row >> (7 - sc_x)) & 1;
-                    if (screen[dy][dx] && !new_pixel) {
+                    if (screen[dy][dx] && new_pixel) {
                         v[0xF] = 1;
                     }
                     screen[dy][dx] = screen[dy][dx] ^ new_pixel;
                 }
             }
+
+            waiting_for_vblank = true;
 
             break;
         }
@@ -295,7 +301,7 @@ void Chip8State::decode_and_execute(std::uint16_t instruction) {
                     v[x] = delay_timer;
                     break;
                 case 0x0A:
-                    register_listening_for_key = v[x] % 16;
+                    register_listening_for_key = x;
                     break;
                 case 0x15:
                     delay_timer = v[x];
@@ -341,6 +347,7 @@ void Chip8State::decode_and_execute(std::uint16_t instruction) {
 void Chip8State::tick_timers() {
     if (delay_timer > 0) delay_timer--;
     if (sound_timer >0) sound_timer--;
+    waiting_for_vblank = false;
 }
 
 void Chip8State::clear_screen() {

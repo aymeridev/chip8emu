@@ -102,13 +102,15 @@ namespace {
         ImGui::Spacing();
         ImGui::Text("Keyboard");
 
-        std::size_t idx = 0;
+        int idx = 0;
         for (const auto key_order: draw_order) {
             const auto key = AppState::keys[key_order];
-            if (!appstate->chip8_state.keys[idx]) ImGui::BeginDisabled();
-            ImGui::Button(SDL_GetKeyName(AppState::keys[idx]));
-            // ImGui::Button(SDL_GetKeyName(key));
-            if (!appstate->chip8_state.keys[idx]) ImGui::EndDisabled();
+            if (!appstate->chip8_state.keys[key_order]) ImGui::BeginDisabled();
+
+            ImGui::PushID(idx);
+            ImGui::Text("%X (%s)", key_order, SDL_GetKeyName(key));
+            ImGui::PopID();
+            if (!appstate->chip8_state.keys[key_order]) ImGui::EndDisabled();
             idx++;
             if (idx % 4 != 0) ImGui::SameLine();
         }
@@ -142,13 +144,13 @@ namespace {
     void draw_rom_switcher(AppState* appstate) {
         bool p_switch_open = true;
 
-        if (!ImGui::Begin("Switch &ROM", &p_switch_open)) {
+        if (!ImGui::Begin("Switch ROM", &p_switch_open)) {
             ImGui::End();
             return;
         }
 
-        ImGui::Text("test roms");
-        if (ImGui::BeginListBox("rom list")) {
+        ImGui::Text("Test Roms");
+        if (ImGui::BeginListBox("##rom list box")) {
             for (const auto path : test_roms) {
                 if (ImGui::Selectable(path.data(), ("roms/"s + path.data()) == appstate->chip8_state.rom_file_path)) {
                     appstate->chip8_state.load_rom("roms/"s + path.data());

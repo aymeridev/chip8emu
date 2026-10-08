@@ -63,12 +63,14 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
     auto* state = static_cast<AppState*>(appstate);
 
     ImGui_ImplSDL3_ProcessEvent(event);
-    std::size_t idx = 0;
-    for (const auto key: AppState::keys) {
-        if (event->key.key == key) {
-            state->chip8_state.update_key(idx, event->type == SDL_EVENT_KEY_DOWN);
+    if (event->type == SDL_EVENT_KEY_DOWN or event->type == SDL_EVENT_KEY_UP) {
+        std::size_t idx = 0;
+        for (const auto key: AppState::keys) {
+            if (event->key.key == key) {
+                state->chip8_state.update_key(idx, event->type == SDL_EVENT_KEY_DOWN);
+            }
+            idx++;
         }
-        idx++;
     }
     if (event->type == SDL_EVENT_QUIT) {
         return SDL_APP_SUCCESS;
