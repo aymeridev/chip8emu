@@ -21,7 +21,8 @@ public:
 
     // input
     std::array<bool, 16> keys = {};
-    std::optional<uint8_t> waiting_for_key;
+
+    std::optional<uint8_t> register_listening_for_key;
 
     std::array<std::uint16_t, 16> stack;
 
@@ -43,9 +44,11 @@ public:
 
     /**
      *
-     * @return return true if the ROM has reached the end of the memory.
+     * @return return true while the run has not reached the end of memory
      */
     bool cycle();
+
+    void update_key(std::uint8_t index, bool enabled);
 
     // fetch 4 bits from memory
     std::uint16_t fetch();

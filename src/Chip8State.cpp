@@ -36,7 +36,7 @@ void Chip8State::reset() {
     sound_timer = 0;
 
     keys.fill(false);
-    waiting_for_key = std::nullopt;
+    register_listening_for_key = std::nullopt;
 
     stack.fill(0);
     std::ranges::copy(font, memory.begin() + 0x50);
@@ -93,18 +93,24 @@ std::uint16_t Chip8State::fetch() {
     return instr;
 }
 
+void Chip8State::update_key(const std::uint8_t index, const bool enabled) {
+    keys[index] = enabled;
+    if (register_listening_for_key.has_value() && enabled) {
+        v[register_listening_for_key.value()] = index;
+        register_listening_for_key = std::nullopt;
+    }
+}
+
 bool Chip8State::cycle() {
     if (pc >= 4094) return false;
 
     // see Fx0A : stop execution until the target key is pressed
-    if (waiting_for_key.has_value()) {
-        if (!keys[waiting_for_key.value()]) return true;
-        waiting_for_key = false;
-    }
+    if (register_listening_for_key.has_value()) return true;
     const auto instr = fetch();
     decode_and_execute(instr);
     return pc >= 4094;
 }
+
 
 
 void Chip8State::run_math(std::uint8_t n, std::uint8_t x, std::uint8_t y) {
@@ -272,6 +278,7 @@ void Chip8State::decode_and_execute(std::uint16_t instruction) {
             switch (nn) {
                 case 0x9E: // SKP Vx
                     if (keys[v[x] % 16]) pc += 2;
+                    break;
                 case 0xA1: // SKNP Vx
                     if (!keys[v[x] % 16]) pc += 2;
                     break;
@@ -288,7 +295,7 @@ void Chip8State::decode_and_execute(std::uint16_t instruction) {
                     v[x] = delay_timer;
                     break;
                 case 0x0A:
-                    waiting_for_key = v[x] % 16;
+                    register_listening_for_key = v[x] % 16;
                     break;
                 case 0x15:
                     delay_timer = v[x];

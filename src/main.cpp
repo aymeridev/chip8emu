@@ -64,9 +64,9 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
 
     ImGui_ImplSDL3_ProcessEvent(event);
     std::size_t idx = 0;
-    for (const auto key: state->keys) {
+    for (const auto key: AppState::keys) {
         if (event->key.key == key) {
-            state->chip8_state.keys[idx] = event->type == SDL_EVENT_KEY_DOWN;
+            state->chip8_state.update_key(idx, event->type == SDL_EVENT_KEY_DOWN);
         }
         idx++;
     }

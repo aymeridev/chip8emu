@@ -71,6 +71,12 @@ namespace {
         ImGui::End();
     }
 
+    constexpr std::array<u_int8_t, 16> draw_order = {
+        0x1, 0x2, 0x3, 0xC,
+        0x4, 0x5, 0x6, 0xD,
+        0x7, 0x8, 0x9, 0xE,
+        0xA, 0x0, 0xB, 0xF };
+
     void draw_main_settings(AppState* appstate, const ImVec2 pos, const ImVec2 size) {
         bool p_main_open = true;
         // ImGui::ShowDemoWindow(&p_main_open);
@@ -93,11 +99,15 @@ namespace {
             ImGui::Text("%d", value);
             ImGui::SameLine();
         }
+        ImGui::Spacing();
+        ImGui::Text("Keyboard");
 
         std::size_t idx = 0;
-        for (const auto key: appstate->keys) {
+        for (const auto key_order: draw_order) {
+            const auto key = AppState::keys[key_order];
             if (!appstate->chip8_state.keys[idx]) ImGui::BeginDisabled();
-            ImGui::Button(SDL_GetKeyName(key));
+            ImGui::Button(SDL_GetKeyName(AppState::keys[idx]));
+            // ImGui::Button(SDL_GetKeyName(key));
             if (!appstate->chip8_state.keys[idx]) ImGui::EndDisabled();
             idx++;
             if (idx % 4 != 0) ImGui::SameLine();
