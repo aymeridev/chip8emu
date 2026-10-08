@@ -47,7 +47,8 @@ add_executable(chip8tests
         tests/test_utils.hpp
         tests/test_timers.cpp
         tests/test_font.cpp
-        tests/test_save_load.cpp)
+        tests/test_save_load.cpp
+        tests/test_disassembler.cpp)
 
 target_link_directories(chip8tests PRIVATE chip8core)
 target_link_libraries(chip8tests PRIVATE chip8core)

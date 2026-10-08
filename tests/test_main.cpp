@@ -13,8 +13,8 @@ TEST_CASE("add") {
     };
     std::span<std::uint8_t> sp_mem = mem;
     chip.load_rom(sp_mem);
-    CHECK(!chip.cycle());
-    CHECK(!chip.cycle());
+    CHECK(chip.cycle());
+    CHECK(chip.cycle());
     CHECK(chip.v[0] == 5);
 }
 TEST_SUITE_END;
