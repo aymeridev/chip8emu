@@ -19,6 +19,10 @@ public:
     uint16_t pc = 0x200; // program counter
     std::mt19937 rng = std::mt19937(std::random_device{}());
 
+    // input
+    std::array<bool, 16> keys = {};
+    std::optional<uint8_t> waiting_for_key;
+
     std::array<std::uint16_t, 16> stack;
 
     // stack pointer

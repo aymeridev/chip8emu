@@ -94,6 +94,14 @@ namespace {
             ImGui::SameLine();
         }
 
+        std::size_t idx = 0;
+        for (const auto key: appstate->keys) {
+            if (!appstate->chip8_state.keys[idx]) ImGui::BeginDisabled();
+            ImGui::Button(SDL_GetKeyName(key));
+            if (!appstate->chip8_state.keys[idx]) ImGui::EndDisabled();
+            idx++;
+            if (idx % 4 != 0) ImGui::SameLine();
+        }
 
 
         ImGui::Checkbox("pause", &appstate->pause);
@@ -180,7 +188,7 @@ void DebugUI::update() {
 
     draw_main_settings(appstate,
         ImVec2(360.0f, screen_window_height),
-        ImVec2(screen_window_width, 64));
+        ImVec2(screen_window_width, size.y - screen_window_height));
     ImGui::Render();
 
     const ImGuiIO& io = ImGui::GetIO();

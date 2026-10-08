@@ -58,10 +58,18 @@ SDL_AppResult SDL_AppInit(void **appstate, int, char *[]) {
     return SDL_APP_CONTINUE;
 }
 
-SDL_AppResult SDL_AppEvent(void *, SDL_Event *event) {
+SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
+
+    auto* state = static_cast<AppState*>(appstate);
 
     ImGui_ImplSDL3_ProcessEvent(event);
-
+    std::size_t idx = 0;
+    for (const auto key: state->keys) {
+        if (event->key.key == key) {
+            state->chip8_state.keys[idx] = event->type == SDL_EVENT_KEY_DOWN;
+        }
+        idx++;
+    }
     if (event->type == SDL_EVENT_QUIT) {
         return SDL_APP_SUCCESS;
     }

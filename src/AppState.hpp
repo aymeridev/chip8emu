@@ -19,6 +19,12 @@ public:
     std::array<float, 3> foreground_color { 0.969f, 0.808f, 0.274f };
     SDL_Texture *texture = nullptr;
     Uint32 pixels[screen_width * screen_height] = {};
+    static constexpr std::array<SDL_Keycode, 16> keys = {
+        SDLK_1, SDLK_2, SDLK_3, SDLK_4,
+        SDLK_A, SDLK_Z, SDLK_E, SDLK_R,
+        SDLK_Q, SDLK_S, SDLK_D, SDLK_F,
+        SDLK_W, SDLK_X, SDLK_C, SDLK_V,
+     };
 
     float pixel_scale = 24.0f;
     float cycle_timer = cycle_total_timer;
