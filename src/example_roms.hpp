@@ -13,5 +13,6 @@ constexpr std::array<std::string_view, 8> test_roms = {
     "8-scrolling.ch8",
 };
 
-constexpr std::array<std::string_view, 0> example_roms = {
+constexpr std::array<std::string_view, 1> example_roms = {
+    "tetris.ch8",
 };

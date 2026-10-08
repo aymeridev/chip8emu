@@ -6,6 +6,7 @@
 #include <imgui_internal.h>
 #include <iostream>
 
+#include "Disassembler.hpp"
 #include "example_roms.hpp"
 #include "imgui.h"
 #include "imgui_impl_sdl3.h"
@@ -79,7 +80,7 @@ namespace {
 
     void draw_main_settings(AppState* appstate, const ImVec2 pos, const ImVec2 size) {
         bool p_main_open = true;
-        // ImGui::ShowDemoWindow(&p_main_open);
+        ImGui::ShowDemoWindow(&p_main_open);
 
         constexpr ImGuiWindowFlags flags = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize;
 
@@ -127,6 +128,31 @@ namespace {
         ImGui::End();
     }
 
+    void draw_disassembler(AppState* appstate, const ImVec2 pos, const ImVec2 size) {
+        ImGui::SetNextWindowPos(pos);
+        ImGui::SetNextWindowSize(size);
+        auto chip = appstate->chip8_state;
+
+        bool p_main_open = true;
+
+        if (!ImGui::Begin("Disassembler", &p_main_open)) {
+            ImGui::End();
+            return;
+        }
+
+        for (int i = 0x200; i < 0x400; i += 2) {
+            const std::uint16_t instr = (chip.memory[i] << 8) | chip.memory[i + 1];
+            ImGui::PushID(i);
+            ImGui::RadioButton("##", false);
+            ImGui::PopID();
+            ImGui::SameLine();
+            ImGui::Text(disassemble(instr).c_str());
+        }
+
+        ImGui::End();
+    }
+
+
     void draw_display_settings(AppState *appstate) {
         bool p_display_open = true;
 
@@ -158,7 +184,17 @@ namespace {
             }
             ImGui::EndListBox();
         }
-        ImGui::Text("example roms");
+
+        ImGui::Spacing();
+        ImGui::Text("Game Roms");
+        if (ImGui::BeginListBox("##games rom list box")) {
+            for (const auto path : example_roms) {
+                if (ImGui::Selectable(path.data(), ("roms/games/"s + path.data()) == appstate->chip8_state.rom_file_path)) {
+                    appstate->chip8_state.load_rom("roms/games/"s + path.data());
+                }
+            }
+            ImGui::EndListBox();
+        }
 
         ImGui::End();
     }
@@ -189,6 +225,7 @@ void DebugUI::update() {
     const ImVec2 pos = vp->WorkPos;
     const ImVec2 size = vp->WorkSize;
 
+    draw_disassembler(appstate, pos, ImVec2(360.0f, size.y));
     draw_memory_viewer(chip8_state, ImVec2(size.x - 360.0f, pos.y), ImVec2(360.0f, size.y));
     draw_display_settings(appstate);
     draw_rom_switcher(appstate);

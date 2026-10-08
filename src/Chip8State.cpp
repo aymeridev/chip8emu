@@ -184,7 +184,7 @@ void Chip8State::run_math(std::uint8_t n, std::uint8_t x, std::uint8_t y) {
 void Chip8State::decode_and_execute(std::uint16_t instruction) {
 
     const std::uint16_t nnn = instruction & 0x0FFF;
-    const std::uint16_t nn = instruction & 0x00FF;
+    const std::uint8_t nn = instruction & 0x00FF;
     const std::uint8_t n = instruction & 0x000F;
     const std::uint8_t x = (instruction >> 8) & 0x0F;
     const std::uint8_t y = (instruction >> 4) & 0x0F;
