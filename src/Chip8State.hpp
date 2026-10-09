@@ -3,7 +3,6 @@
 #include <array>
 #include <string>
 #include <span>
-#include <random>
 #include <cstdint>
 #include <initializer_list>
 
@@ -17,7 +16,6 @@ public:
     std::array<std::uint8_t, 16> v; // general registers
     uint16_t i_reg; // store memory address
     uint16_t pc = 0x200; // program counter
-    std::mt19937 rng = std::mt19937(std::random_device{}());
 
     // input
     std::array<bool, 16> keys = {};
@@ -32,6 +30,7 @@ public:
 
     uint8_t delay_timer = 0;
     uint8_t sound_timer = 0;
+    bool rom_loaded = false;
 
     void tick_timers();
 

@@ -6,6 +6,7 @@
 #include "Chip8State.hpp"
 
 #include "logo.hpp"
+#include "random.hpp"
 
 
 constexpr std::array<std::uint8_t, 80> font = {
@@ -28,6 +29,7 @@ constexpr std::array<std::uint8_t, 80> font = {
 };
 
 void Chip8State::reset() {
+    rom_loaded = false;
     memory.fill(0);
     for (std::size_t y = 0; y < 32; ++y) {
         for (std::size_t x = 0; x < 64; ++x) {
@@ -77,6 +79,7 @@ bool Chip8State::load_rom(const std::string &file_path) {
     std::cout << "read " << file.gcount() << " bytes\n";
 
     rom_file_path = file_path;
+    rom_loaded = true;
     return true;
 }
 
@@ -87,6 +90,7 @@ bool Chip8State::load_rom(std::span<uint8_t> &rom_data) {
         return false;
     }
     std::ranges::copy(rom_data, memory.begin() + 0x200);
+    rom_loaded = true;
     return true;
 }
 
@@ -257,7 +261,7 @@ void Chip8State::decode_and_execute(std::uint16_t instruction) {
             pc = (nnn + v[0]) & 0x0FFF;
             break;
         case 0xC:
-            v[x] = std::uniform_int_distribution<>(0, 255)(rng) & nn;
+            v[x] = xorshift32() & nn;
             break;
         case 0xD: { // display
 

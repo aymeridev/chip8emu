@@ -31,8 +31,6 @@ target_link_libraries(imgui PUBLIC SDL3::SDL3)
 
 add_library(chip8core src/Chip8State.cpp
         src/Chip8State.hpp
-        src/utils_color.hpp
-        src/Disassembler.hpp
         src/logo.hpp
 )
 
@@ -40,6 +38,9 @@ add_executable(chip8emu src/main.cpp
         src/DebugUI.cpp
         src/DebugUI.hpp
         src/AppState.hpp
+        src/Disassembler.hpp
+        src/random.hpp
+        src/utils_color.hpp
         src/example_roms.hpp)
 
 add_executable(chip8tests
