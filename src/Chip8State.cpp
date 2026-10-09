@@ -5,6 +5,8 @@
 
 #include "Chip8State.hpp"
 
+#include "logo.hpp"
+
 
 constexpr std::array<std::uint8_t, 80> font = {
     /* 0 */ 0xF0, 0x90, 0x90, 0x90, 0xF0,
@@ -27,7 +29,12 @@ constexpr std::array<std::uint8_t, 80> font = {
 
 void Chip8State::reset() {
     memory.fill(0);
-    clear_screen();
+    for (std::size_t y = 0; y < 32; ++y) {
+        for (std::size_t x = 0; x < 64; ++x) {
+            screen[y][x] = get_pixel(x, y);
+        }
+    }
+
     pc = 0x200;
     v.fill(0);
     i_reg = 0;

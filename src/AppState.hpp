@@ -25,6 +25,7 @@ public:
         SDLK_S, SDLK_D, SDLK_W, SDLK_C,
         SDLK_4, SDLK_R, SDLK_F, SDLK_V,
      };
+    std::array<std::uint16_t, 32> breakpoints;
 
     // static constexpr std::array<SDL_Keycode, 16> keys = {
     //     SDLK_1, SDLK_2, SDLK_3, SDLK_4,

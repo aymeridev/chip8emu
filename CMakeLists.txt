@@ -33,8 +33,8 @@ add_library(chip8core src/Chip8State.cpp
         src/Chip8State.hpp
         src/utils_color.hpp
         src/Disassembler.hpp
+        src/logo.hpp
 )
-
 
 add_executable(chip8emu src/main.cpp
         src/DebugUI.cpp

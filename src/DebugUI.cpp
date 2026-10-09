@@ -140,10 +140,14 @@ namespace {
             return;
         }
 
-        for (int i = 0x200; i < 0x400; i += 2) {
+        for (int i = 0x200; i < 0x0FFF; i += 2) {
             const std::uint16_t instr = (chip.memory[i] << 8) | chip.memory[i + 1];
+
+            if (instr == 0x0000) continue;
             ImGui::PushID(i);
-            ImGui::RadioButton("##", false);
+            if (ImGui::RadioButton("##", std::ranges::find(appstate->breakpoints, i) != appstate->breakpoints.end())) {
+                // appstate->breakpoints.
+            }
             ImGui::PopID();
             ImGui::SameLine();
             ImGui::Text(disassemble(instr).c_str());
