@@ -11,6 +11,7 @@
 #include "imgui.h"
 #include "imgui_impl_sdl3.h"
 #include "imgui_impl_sdlrenderer3.h"
+#include "random.hpp"
 
 using namespace std::string_literals;
 
@@ -32,6 +33,8 @@ DebugUI::DebugUI(AppState *appstate) :
 
 namespace {
 
+    constexpr uint32_t default_window_flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse;
+
     void draw_logs(const ImVec2 pos, const ImVec2 size) {
 
     }
@@ -41,7 +44,7 @@ namespace {
 
         ImGui::SetNextWindowPos(pos);
         ImGui::SetNextWindowSize(size);
-        if (!ImGui::Begin("Memory", &p_memory_open)) {
+        if (!ImGui::Begin("Memory", &p_memory_open, default_window_flags)) {
             ImGui::End();
             return;
         }
@@ -54,6 +57,7 @@ namespace {
                 if (row == 0x200) {
                     ImGui::TableNextRow();
                     ImGui::TableSetColumnIndex(0);
+                    ImGui::Dummy(ImVec2 { 0.0f, 32.0f });
                     ImGui::Text("CART DATA START");
                 }
                 ImGui::TableNextRow();
@@ -62,8 +66,15 @@ namespace {
                 for (int i = 0; i < 8; ++i) {
                     ImGui::TableSetColumnIndex(1 + i);
                     const int idx = row + (i * 2);
+                    const int instr = (state.memory[idx] << 8) | state.memory[idx + 1];
                     if (idx == state.pc) ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg, IM_COL32(0, 0, 255, 255));
-                    ImGui::Text("%04X", (state.memory[idx] << 8) | state.memory[idx + 1]);
+
+                    if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNone)) {
+                        ImGui::SetTooltip(disassemble(instr).c_str());
+                    }
+                    ImGui::TextColored(instr == 0x0 ?
+                        ImVec4 { 0.5f, 0.5f, 0.5f, 1.0f }
+                        : ImVec4 { 1.0f, 1.0f, 1.0f, 1.0f },  "%04X", instr);
                 }
             }
             ImGui::EndTable();
@@ -91,39 +102,70 @@ namespace {
             return;
         }
 
-        ImGui::Text("current rom: %s", appstate->chip8_state.rom_file_path.c_str());
-        ImGui::Text("program counter: %d", appstate->chip8_state.pc);
-        ImGui::Text("i: %d", appstate->chip8_state.i_reg);
-        ImGui::Spacing();
-        ImGui::Text("Registers");
-        for (const auto& value : appstate->chip8_state.v) {
-            ImGui::Text("%d", value);
+        if (ImGui::CollapsingHeader("Debugger")) {
+            ImGui::SliderInt("Cycles Per Tick", &appstate->cycles_per_tick, 1, 1000);
+
+            ImGui::Checkbox("Pause Execution", &appstate->pause);
             ImGui::SameLine();
-        }
-        ImGui::Spacing();
-        ImGui::Text("Keyboard");
-
-        int idx = 0;
-        for (const auto key_order: draw_order) {
-            const auto key = AppState::keys[key_order];
-            if (!appstate->chip8_state.keys[key_order]) ImGui::BeginDisabled();
-
-            ImGui::PushID(idx);
-            ImGui::Text("%X (%s)", key_order, SDL_GetKeyName(key));
-            ImGui::PopID();
-            if (!appstate->chip8_state.keys[key_order]) ImGui::EndDisabled();
-            idx++;
-            if (idx % 4 != 0) ImGui::SameLine();
+            if (ImGui::Button(">> Next Frame")) {
+                appstate->pause = true;
+                appstate->chip8_state.fetch();
+            }
         }
 
+        const std::string& current_path = appstate->chip8_state.rom_file_path;
+        if (ImGui::BeginCombo("roms list", current_path.empty() ? "no rom loaded" : current_path.data())) {
+            ImGui::Selectable("Demo Roms", false, ImGuiSelectableFlags_Highlight | ImGuiSelectableFlags_Disabled);
+            for (const auto path : test_roms) {
+                if (ImGui::Selectable(path.data(), ("roms/"s + path.data()) == current_path)) {
+                    appstate->chip8_state.load_rom("roms/"s + path.data());
+                }
+            }
+            ImGui::Spacing();
+            ImGui::Selectable("Game Roms", false, ImGuiSelectableFlags_Highlight | ImGuiSelectableFlags_Disabled);
+            for (const auto path : example_roms) {
+                if (ImGui::Selectable(path.data(), ("roms/games/"s + path.data()) == appstate->chip8_state.rom_file_path)) {
+                    appstate->chip8_state.load_rom("roms/games/"s + path.data());
+                }
+            }
 
-        ImGui::Checkbox("pause", &appstate->pause);
-
-        if (!appstate->pause) ImGui::BeginDisabled();
-        if (ImGui::Button("Next")) {
-            appstate->chip8_state.fetch();
+            ImGui::EndCombo();
         }
-        if (!appstate->pause) ImGui::EndDisabled();
+
+
+        if (appstate->chip8_state.rom_loaded) {
+            ImGui::Text("current rom: %s", appstate->chip8_state.rom_file_path.c_str());
+            ImGui::Text("program counter: %d", appstate->chip8_state.pc);
+            ImGui::Text("i: %d", appstate->chip8_state.i_reg);
+            ImGui::Spacing();
+            ImGui::Text("Registers");
+            for (std::size_t i = 0; i < appstate->chip8_state.v.size(); ++i) {
+                ImGui::Text("0x%X", static_cast<int>(i));
+                ImGui::SameLine();
+                ImGui::Text("%d", appstate->chip8_state.v[i]);
+                // ImGui::SameLine();
+                // // std::string name = "test";
+                // // ImGui::InputText("test", name.data(), sizeof(name), ImGuiInputTextFlags_EnterReturnsTrue);
+            }
+            ImGui::Spacing();
+            ImGui::Text("Keyboard");
+
+            int idx = 0;
+            for (const auto key_order: draw_order) {
+                const auto key = AppState::keys[key_order];
+                if (!appstate->chip8_state.keys[key_order]) ImGui::BeginDisabled();
+
+                ImGui::PushID(idx);
+                ImGui::Text("%X (%s)", key_order, SDL_GetKeyName(key));
+                ImGui::PopID();
+                if (!appstate->chip8_state.keys[key_order]) ImGui::EndDisabled();
+                idx++;
+                if (idx % 4 != 0) ImGui::SameLine();
+            }
+        } else {
+            ImGui::Text("No ROM is loaded.");
+            ImGui::Text("You can select one with the menu.");
+        }
 
         ImGui::End();
     }
@@ -168,36 +210,9 @@ namespace {
         ImGui::ColorEdit3("background", appstate->background_color.data());
         ImGui::ColorEdit3("foreground", appstate->foreground_color.data());
 
-        ImGui::End();
-    }
-
-    void draw_rom_switcher(AppState* appstate) {
-        bool p_switch_open = true;
-
-        if (!ImGui::Begin("Switch ROM", &p_switch_open)) {
-            ImGui::End();
-            return;
-        }
-
-        ImGui::Text("Test Roms");
-        if (ImGui::BeginListBox("##rom list box")) {
-            for (const auto path : test_roms) {
-                if (ImGui::Selectable(path.data(), ("roms/"s + path.data()) == appstate->chip8_state.rom_file_path)) {
-                    appstate->chip8_state.load_rom("roms/"s + path.data());
-                }
-            }
-            ImGui::EndListBox();
-        }
-
-        ImGui::Spacing();
-        ImGui::Text("Game Roms");
-        if (ImGui::BeginListBox("##games rom list box")) {
-            for (const auto path : example_roms) {
-                if (ImGui::Selectable(path.data(), ("roms/games/"s + path.data()) == appstate->chip8_state.rom_file_path)) {
-                    appstate->chip8_state.load_rom("roms/games/"s + path.data());
-                }
-            }
-            ImGui::EndListBox();
+        if (ImGui::Button("Randomize colors")) {
+            appstate->background_color = { random_float() * 0.5f, random_float() * 0.5f, random_float() * 0.5f };
+            appstate->foreground_color = { random_float(), random_float(), random_float() };
         }
 
         ImGui::End();
@@ -208,7 +223,7 @@ namespace {
         ImGui::SetNextWindowPos(pos);
         ImGui::SetNextWindowSize(size);
         bool open = true;
-        ImGui::Begin("Screen", &open, ImGuiWindowFlags_NoTitleBar);
+        ImGui::Begin("Screen", &open, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize);
         ImDrawList* draw_list = ImGui::GetWindowDrawList();
         const ImVec2 p = ImGui::GetCursorScreenPos();
         draw_list->AddCallback(ImGui::GetPlatformIO().DrawCallback_SetSamplerNearest);
@@ -232,7 +247,6 @@ void DebugUI::update() {
     draw_disassembler(appstate, pos, ImVec2(360.0f, size.y));
     draw_memory_viewer(chip8_state, ImVec2(size.x - 360.0f, pos.y), ImVec2(360.0f, size.y));
     draw_display_settings(appstate);
-    draw_rom_switcher(appstate);
 
     const float screen_window_width = size.x - 720;
     const float screen_window_height = screen_window_width / 2.0f;

@@ -11,6 +11,7 @@ constexpr int screen_height = 32;
 
 class Chip8State {
 public:
+    Chip8State();
 
     std::string rom_file_path;
     std::array<std::uint8_t, 16> v; // general registers
@@ -21,7 +22,7 @@ public:
     std::array<bool, 16> keys = {};
 
     std::optional<uint8_t> register_listening_for_key;
-    bool waiting_for_vblank;
+    bool waiting_for_vblank = false;
 
     std::array<std::uint16_t, 16> stack;
 

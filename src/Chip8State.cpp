@@ -28,15 +28,18 @@ constexpr std::array<std::uint8_t, 80> font = {
     /* F */ 0xF0, 0x80, 0xF0, 0x80, 0x80,
 };
 
-void Chip8State::reset() {
-    rom_loaded = false;
-    memory.fill(0);
+Chip8State::Chip8State() {
     for (std::size_t y = 0; y < 32; ++y) {
         for (std::size_t x = 0; x < 64; ++x) {
             screen[y][x] = get_pixel(x, y);
         }
     }
+}
 
+void Chip8State::reset() {
+    rom_loaded = false;
+    memory.fill(0);
+    clear_screen();
     pc = 0x200;
     v.fill(0);
     i_reg = 0;

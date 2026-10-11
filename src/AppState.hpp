@@ -36,6 +36,7 @@ public:
 
     float pixel_scale = 24.0f;
     float cycle_timer = cycle_total_timer;
+    int cycles_per_tick = 12;
     float tick_timer = tick_total_timer;
     float last_tick;
 
