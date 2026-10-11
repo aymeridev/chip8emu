@@ -15,8 +15,7 @@
 
 using namespace std::string_literals;
 
-DebugUI::DebugUI(AppState *appstate) :
-    appstate(appstate), chip8_state(appstate->chip8_state) {
+DebugUI::DebugUI(const AppState* appstate) {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
@@ -24,27 +23,29 @@ DebugUI::DebugUI(AppState *appstate) :
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     ImGui::StyleColorsDark();
 
-    window = appstate->window;
-    renderer = appstate->renderer;
+    auto window = appstate->window;
+    auto renderer = appstate->renderer;
 
     ImGui_ImplSDL3_InitForSDLRenderer(window, renderer);
     ImGui_ImplSDLRenderer3_Init(renderer);
+}
+
+DebugUI::~DebugUI() {
+    ImGui_ImplSDLRenderer3_Shutdown();
+    ImGui_ImplSDL3_Shutdown();
+    ImGui::DestroyContext();
 }
 
 namespace {
 
     constexpr uint32_t default_window_flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse;
 
-    void draw_logs(const ImVec2 pos, const ImVec2 size) {
-
-    }
-
-    void draw_memory_viewer(const Chip8State &state, const ImVec2 pos, const ImVec2 size) {
+    void draw_memory_viewer(Chip8State &state, const ImVec2 pos, const ImVec2 size) {
         bool p_memory_open = true;
 
         ImGui::SetNextWindowPos(pos);
         ImGui::SetNextWindowSize(size);
-        if (!ImGui::Begin("Memory", &p_memory_open, default_window_flags)) {
+        if (!ImGui::Begin("Hex Viewer", &p_memory_open, default_window_flags)) {
             ImGui::End();
             return;
         }
@@ -53,6 +54,7 @@ namespace {
             ImGui::TableNextRow();
             ImGui::TableSetColumnIndex(0);
             ImGui::Text("INTERNAL");
+            ImGui::PushStyleColor(ImGuiCol_TextLink, ImVec4 { 1.0f, 1.0f, 1.0f, 1.0f });
             for (int row = 0; row < 4096; row += 16) {
                 if (row == 0x200) {
                     ImGui::TableNextRow();
@@ -65,18 +67,23 @@ namespace {
                 ImGui::Text("%d", row);
                 for (int i = 0; i < 8; ++i) {
                     ImGui::TableSetColumnIndex(1 + i);
-                    const int idx = row + (i * 2);
+                    const uint16_t idx = row + (i * 2);
                     const int instr = (state.memory[idx] << 8) | state.memory[idx + 1];
                     if (idx == state.pc) ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg, IM_COL32(0, 0, 255, 255));
 
+                    ImGui::PushID(idx);
                     if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNone)) {
-                        ImGui::SetTooltip(disassemble(instr).c_str());
+                        ImGui::SetTooltip("%s", disassemble(instr).c_str());
                     }
-                    ImGui::TextColored(instr == 0x0 ?
-                        ImVec4 { 0.5f, 0.5f, 0.5f, 1.0f }
-                        : ImVec4 { 1.0f, 1.0f, 1.0f, 1.0f },  "%04X", instr);
+                    if (instr == 0x0) ImGui::BeginDisabled();
+                    if (ImGui::TextLink(std::format("{:04X}", instr).c_str())) {
+                        state.pc = idx;
+                    }
+                    if (instr == 0x0) ImGui::EndDisabled();
+                    ImGui::PopID();
                 }
             }
+            ImGui::PopStyleColor();
             ImGui::EndTable();
         }
 
@@ -109,8 +116,9 @@ namespace {
             ImGui::SameLine();
             if (ImGui::Button(">> Next Frame")) {
                 appstate->pause = true;
-                appstate->chip8_state.fetch();
+                appstate->chip8_state.cycle();
             }
+            ImGui::Text("On the Memory Viewer tab, you can also click a word to jump to it.");
         }
 
         const std::string& current_path = appstate->chip8_state.rom_file_path;
@@ -192,7 +200,7 @@ namespace {
             }
             ImGui::PopID();
             ImGui::SameLine();
-            ImGui::Text(disassemble(instr).c_str());
+            ImGui::Text("%s", disassemble(instr).c_str());
         }
 
         ImGui::End();
@@ -235,7 +243,10 @@ namespace {
     }
 }
 
-void DebugUI::update() {
+void DebugUI::update(AppState *appstate) {
+    auto chip8_state = appstate->chip8_state;
+    const auto renderer = appstate->renderer;
+
     ImGui_ImplSDLRenderer3_NewFrame();
     ImGui_ImplSDL3_NewFrame();
     ImGui::NewFrame();
