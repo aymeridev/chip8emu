@@ -107,7 +107,7 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
 
     if (state->debug_ui) {
         SDL_RenderClear(state->renderer);
-        state->debug_ui->update();
+        state->debug_ui->update(state);
     } else {
         SDL_SetRenderDrawColorFloat(state->renderer,
              state->background_color[0],

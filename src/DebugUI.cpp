@@ -23,8 +23,8 @@ DebugUI::DebugUI(const AppState* appstate) {
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     ImGui::StyleColorsDark();
 
-    auto window = appstate->window;
-    auto renderer = appstate->renderer;
+    auto& window = appstate->window;
+    auto& renderer = appstate->renderer;
 
     ImGui_ImplSDL3_InitForSDLRenderer(window, renderer);
     ImGui_ImplSDLRenderer3_Init(renderer);
@@ -245,7 +245,7 @@ namespace {
 
 void DebugUI::update(AppState *appstate) {
     auto chip8_state = appstate->chip8_state;
-    const auto renderer = appstate->renderer;
+    const auto& renderer = appstate->renderer;
 
     ImGui_ImplSDLRenderer3_NewFrame();
     ImGui_ImplSDL3_NewFrame();
