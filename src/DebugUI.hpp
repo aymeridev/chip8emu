@@ -9,5 +9,9 @@ struct DebugUI {
     DebugUI(const AppState* appstate);
     ~DebugUI();
 
-    static void update(AppState *appstate);
+    void update(AppState *appstate);
+    void show_message(const char* message);
+private:
+    bool m_show_message = false;
+    const char* m_message = nullptr;
 };

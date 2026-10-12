@@ -6,6 +6,7 @@
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 #include <string>
+#include <filesystem>
 
 #include "AppState.hpp"
 #include "Chip8State.hpp"
@@ -14,6 +15,13 @@
 #include "utils_color.hpp"
 
 using namespace std::string_literals;
+
+namespace {
+    void show_message(const AppState* state, const char* message) {
+        if (state->debug_ui) state->debug_ui->show_message(message);
+        else SDL_Log("%s", message);
+    }
+}
 
 SDL_AppResult SDL_AppInit(void **appstate, int, char *[]) {
     if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO)) {
@@ -83,10 +91,25 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
             }
         }
     }
+    if (event->type == SDL_EVENT_DROP_FILE) {
+
+        const auto file_path = event->drop.data;
+
+        std::cout << file_path << std::endl;
+
+        if (std::filesystem::path(file_path).extension() == ".8o") {
+            if (!state->chip8_state.load_rom(file_path)) {
+                show_message(state, "Error while loading file");
+            }
+        } else if(state->debug_ui) {
+            show_message(state, "Invalid file extension");
+        }
+    }
 
     if (event->type == SDL_EVENT_QUIT) {
         return SDL_APP_SUCCESS;
     }
+
 
     return SDL_APP_CONTINUE;
 }

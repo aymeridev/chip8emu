@@ -28,12 +28,18 @@ DebugUI::DebugUI(const AppState* appstate) {
 
     ImGui_ImplSDL3_InitForSDLRenderer(window, renderer);
     ImGui_ImplSDLRenderer3_Init(renderer);
+
 }
 
 DebugUI::~DebugUI() {
     ImGui_ImplSDLRenderer3_Shutdown();
     ImGui_ImplSDL3_Shutdown();
     ImGui::DestroyContext();
+}
+
+void DebugUI::show_message(const char *message) {
+    m_show_message = true;
+    m_message = message;
 }
 
 namespace {
@@ -98,7 +104,7 @@ namespace {
 
     void draw_main_settings(AppState* appstate, const ImVec2 pos, const ImVec2 size) {
         bool p_main_open = true;
-        ImGui::ShowDemoWindow(&p_main_open);
+        // ImGui::ShowDemoWindow(&p_main_open);
 
         constexpr ImGuiWindowFlags flags = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize;
 
@@ -267,6 +273,21 @@ void DebugUI::update(AppState *appstate) {
     draw_main_settings(appstate,
         ImVec2(360.0f, screen_window_height),
         ImVec2(screen_window_width, size.y - screen_window_height));
+
+    if (m_show_message) ImGui::OpenPopup("Message");
+    if (m_message != nullptr) {
+        const ImVec2 center = vp->GetCenter();
+        ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+        if (ImGui::BeginPopupModal("Message", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+            ImGui::Text("%s", m_message);
+            if (ImGui::Button("OK")) {
+                m_message = nullptr;
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::EndPopup();
+        }
+    }
+
     ImGui::Render();
 
     const ImGuiIO& io = ImGui::GetIO();
