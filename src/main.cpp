@@ -10,21 +10,27 @@
 #include "AppState.hpp"
 #include "Chip8State.hpp"
 #include "DebugUI.hpp"
+#include "random.hpp"
 #include "utils_color.hpp"
 
 using namespace std::string_literals;
 
 SDL_AppResult SDL_AppInit(void **appstate, int, char *[]) {
-    auto* state = new AppState;
-    *appstate = state;
-
-    SDL_SetAppMetadata("chip8emu", "1.0", "dev.aymeri.chip8emu");
-
-    if (!SDL_Init(SDL_INIT_VIDEO)) {
+    if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO)) {
         SDL_Log("Couldn't initialize SDL: %s", SDL_GetError());
         return SDL_APP_FAILURE;
     }
 
+    SDL_SetAppMetadata("chip8emu", "1.0", "dev.aymeri.chip8emu");
+
+    auto* state = new AppState;
+    *appstate = state;
+
+    SDL_AudioSpec spec { SDL_AUDIO_F32, 1, 44100 };
+    state->stream = SDL_OpenAudioDeviceStream(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &spec, nullptr, nullptr);
+    if (!state->stream) {
+        SDL_Log("Couldn't open audio device: %s", SDL_GetError());
+    }
 
     if (!SDL_CreateWindowAndRenderer(
         "chip8emu", 1280, 720,
@@ -45,10 +51,13 @@ SDL_AppResult SDL_AppInit(void **appstate, int, char *[]) {
         SDL_Log("VSync not available: %s", SDL_GetError());
     }
 
+
     state->chip8_state.reset();
 
     state->debug_ui = std::make_unique<DebugUI>(state);
     state->last_tick = static_cast<float>(SDL_GetTicks());
+
+    SDL_ResumeAudioStreamDevice(state->stream);
 
     return SDL_APP_CONTINUE;
 }
@@ -57,7 +66,7 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
 
     auto* state = static_cast<AppState*>(appstate);
 
-    ImGui_ImplSDL3_ProcessEvent(event);
+    if (state->debug_ui) ImGui_ImplSDL3_ProcessEvent(event);
     if (event->type == SDL_EVENT_KEY_DOWN or event->type == SDL_EVENT_KEY_UP) {
         std::size_t idx = 0;
         for (const auto key: AppState::keys) {
@@ -66,7 +75,15 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
             }
             idx++;
         }
+        if (event->type == SDL_EVENT_KEY_DOWN && event->key.key == SDLK_F1) {
+            if (state->debug_ui) {
+                state->debug_ui.reset();
+            } else {
+                state->debug_ui = std::make_unique<DebugUI>(state);
+            }
+        }
     }
+
     if (event->type == SDL_EVENT_QUIT) {
         return SDL_APP_SUCCESS;
     }
@@ -78,6 +95,17 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     auto* state = static_cast<AppState*>(appstate);
 
     const auto tick_now = static_cast<float>(SDL_GetTicks());
+
+    // TODO: audio
+    // const int minimum_audio = (8000 * sizeof(float)) / 2;
+    // if (SDL_GetAudioStreamQueued(state->stream) < minimum_audio) {
+    //     static float samples[512];
+    //
+    //     for (size_t i = 0; i < std::size(samples); i++) {
+    //     }
+    //
+    //     SDL_PutAudioStreamData(state->stream, samples, sizeof (samples));
+    // }
 
     state->cycle_timer -= (tick_now - state->last_tick) / 1000.0f;
     state->tick_timer -= (tick_now - state->last_tick) / 1000.0f;
