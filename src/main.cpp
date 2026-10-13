@@ -13,6 +13,7 @@
 #include "DebugUI.hpp"
 #include "random.hpp"
 #include "utils_color.hpp"
+#include "utils_io.hpp"
 
 using namespace std::string_literals;
 
@@ -66,6 +67,14 @@ SDL_AppResult SDL_AppInit(void **appstate, int, char *[]) {
     state->last_tick = static_cast<float>(SDL_GetTicks());
 
     SDL_ResumeAudioStreamDevice(state->stream);
+
+    for (const auto& path: list_roms_from_dir("./roms")) {
+        state->roms.emplace_back(RomEntry { .path = path, .name = std::filesystem::path(path).filename(), .is_game = false });
+    }
+
+    for (const auto& path: list_roms_from_dir("./roms/games")) {
+        state->roms.emplace_back(RomEntry { .path = path, .name = std::filesystem::path(path).filename(), .is_game = true });
+    }
 
     return SDL_APP_CONTINUE;
 }
