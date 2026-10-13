@@ -6,6 +6,12 @@
 #include "DebugUI.hpp"
 
 
+struct RomEntry {
+    std::string path;
+    std::string name;
+    bool is_game;
+};
+
 constexpr float cycle_total_timer = 1.0f / 60.0f;
 constexpr float tick_total_timer = 1.0f / 60.0f;
 
@@ -13,6 +19,7 @@ class AppState {
 public:
     SDL_Window *window = nullptr;
     SDL_Renderer *renderer = nullptr;
+    SDL_AudioStream* stream = nullptr;
     Chip8State chip8_state = {};
     std::unique_ptr<DebugUI> debug_ui = nullptr;
     std::array<float, 3> background_color { 0.573f, 0.412f, 0.129f };
@@ -36,9 +43,18 @@ public:
 
     float pixel_scale = 24.0f;
     float cycle_timer = cycle_total_timer;
-    int cycles_per_tick = 12;
+    int cycles_per_tick = 100;
     float tick_timer = tick_total_timer;
     float last_tick;
+    std::array<std::string, 16> register_names = {};
+
+
+    bool enable_audio = true;
+    float volume = 0.5f;
+    float frequency = 440.0f;
+    float phase = 0.0f;
 
     bool pause = false;
+
+    std::vector<RomEntry> roms;
 };
