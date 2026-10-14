@@ -50,7 +50,7 @@ add_executable(chip8emu src/main.cpp
         src/utils_color.hpp)
 
 add_library(chip8tools INTERFACE
-        src/Disassembler.hpp
+        src/disassembler.hpp
 )
 
 add_executable(chip8tests
@@ -62,6 +62,7 @@ add_executable(chip8tests
         tests/test_disassembler.cpp)
 
 target_link_libraries(chip8tests PRIVATE chip8core)
+target_link_libraries(chip8tests PRIVATE chip8tools)
 target_include_directories(chip8tests PRIVATE external)
 
 if(ENABLE_SANITIZERS)
@@ -85,6 +86,7 @@ endif ()
 target_link_libraries(chip8emu PRIVATE SDL3::SDL3)
 target_link_libraries(chip8emu PRIVATE imgui)
 target_link_libraries(chip8emu PRIVATE chip8core)
+target_link_libraries(chip8emu PRIVATE chip8tools)
 
 add_custom_command(TARGET chip8emu POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
