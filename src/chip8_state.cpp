@@ -3,7 +3,7 @@
 #include <string>
 #include <iomanip>
 
-#include "Chip8State.hpp"
+#include "chip8_state.hpp"
 
 #include "logo.hpp"
 #include "random.hpp"

@@ -4,7 +4,7 @@
 #include <string_view>
 
 #include "../external/doctest.h"
-#include "../src/Disassembler.hpp"
+#include "../src/disassembler.hpp"
 
 namespace {
     struct Case {

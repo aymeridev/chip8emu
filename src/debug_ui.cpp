@@ -1,12 +1,12 @@
 #include <format>
 
-#include "AppState.hpp"
-#include "DebugUI.hpp"
+#include "app_state.hpp"
+#include "debug_ui.hpp"
 
 #include <imgui_internal.h>
 #include <iostream>
 
-#include "Disassembler.hpp"
+#include "disassembler.hpp"
 #include "imgui.h"
 #include "imgui_impl_sdl3.h"
 #include "imgui_impl_sdlrenderer3.h"

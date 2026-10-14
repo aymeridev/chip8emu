@@ -2,7 +2,7 @@
 #include "test_utils.hpp"
 
 #include "../external/doctest.h"
-#include "../src/Chip8State.hpp"
+#include "../src/chip8_state.hpp"
 
 TEST_SUITE_BEGIN("basic operations");
 TEST_CASE("add") {

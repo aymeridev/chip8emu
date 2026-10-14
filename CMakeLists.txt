@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 4.3)
-project(chip8emu LANGUAGES CXX)
+project(chip8emu VERSION 1.0.0
+        DESCRIPTION "A CHIP-8 Emulator made with C++20 with an SDL3 Frontend."
+        HOMEPAGE_URL "https://github.com/aymeridev/chip8emu"
+        LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -15,7 +18,12 @@ FetchContent_Declare(imgui
 
 FetchContent_MakeAvailable(imgui)
 
-find_package(SDL3 REQUIRED CONFIG)
+FetchContent_Declare(SDL3
+    GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
+    GIT_TAG release-3.4.18
+)
+
+FetchContent_MakeAvailable(SDL3)
 
 add_library(imgui STATIC
         ${imgui_SOURCE_DIR}/imgui.cpp
@@ -29,19 +37,21 @@ add_library(imgui STATIC
 target_include_directories(imgui PUBLIC ${imgui_SOURCE_DIR} ${imgui_SOURCE_DIR}/backends)
 target_link_libraries(imgui PUBLIC SDL3::SDL3)
 
-add_library(chip8core src/Chip8State.cpp
-        src/Chip8State.hpp
+add_library(chip8core src/chip8_state.cpp
+        src/chip8_state.hpp
         src/logo.hpp
 )
 
 add_executable(chip8emu src/main.cpp
-        src/DebugUI.cpp
-        src/DebugUI.hpp
-        src/AppState.hpp
-        src/Disassembler.hpp
+        src/debug_ui.cpp
+        src/debug_ui.hpp
+        src/app_state.hpp
         src/random.hpp
-        src/utils_color.hpp
-        src/example_roms.hpp)
+        src/utils_color.hpp)
+
+add_library(chip8tools INTERFACE
+        src/Disassembler.hpp
+)
 
 add_executable(chip8tests
         tests/test_main.cpp
@@ -51,7 +61,6 @@ add_executable(chip8tests
         tests/test_save_load.cpp
         tests/test_disassembler.cpp)
 
-target_link_directories(chip8tests PRIVATE chip8core)
 target_link_libraries(chip8tests PRIVATE chip8core)
 target_include_directories(chip8tests PRIVATE external)
 

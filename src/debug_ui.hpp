@@ -1,7 +1,7 @@
 #pragma once
 
 #include <SDL3/SDL.h>
-#include "Chip8State.hpp"
+#include "chip8_state.hpp"
 
 class AppState;
 

@@ -2,7 +2,7 @@
 #include <array>
 #include <iostream>
 #include <cstdint>
-#include "../src/Chip8State.hpp"
+#include "../src/chip8_state.hpp"
 
 inline void print_registers(const std::array<std::uint8_t, 16> &registers) {
     for (const auto r : registers) {

@@ -8,10 +8,9 @@
 #include <string>
 #include <filesystem>
 
-#include "AppState.hpp"
-#include "Chip8State.hpp"
-#include "DebugUI.hpp"
-#include "random.hpp"
+#include "app_state.hpp"
+#include "chip8_state.hpp"
+#include "debug_ui.hpp"
 #include "utils_color.hpp"
 #include "utils_io.hpp"
 

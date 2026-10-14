@@ -3,7 +3,7 @@
 #include <SDL3/SDL.h>
 
 #include <array>
-#include "DebugUI.hpp"
+#include "debug_ui.hpp"
 
 
 struct RomEntry {
