@@ -11,8 +11,8 @@ jobs:
       matrix:
         compilers: [['gcc', 'g++'], ['clang', 'clang++']]
     env:
-      CXX: ${{ matrix.compilers[0] }}
-      CC:  ${{ matrix.compilers[1] }}
+      CC:  ${{ matrix.compilers[0] }}
+      CXX: ${{ matrix.compilers[1] }}
     steps:
       - uses: actions/checkout@v7
         # from https://wiki.libsdl.org/SDL3/README-linux#build-dependencies
