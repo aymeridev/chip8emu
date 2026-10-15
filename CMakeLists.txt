@@ -9,8 +9,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 option(ENABLE_SANITIZERS "enable to use ASan/UBSan" ON)
 
-include_directories(tests)
-
 include(FetchContent)
 FetchContent_Declare(imgui
     GIT_REPOSITORY https://github.com/ocornut/imgui.git
@@ -34,36 +32,54 @@ add_library(imgui STATIC
         ${imgui_SOURCE_DIR}/backends/imgui_impl_sdl3.cpp
         ${imgui_SOURCE_DIR}/backends/imgui_impl_sdlrenderer3.cpp
 )
-target_include_directories(imgui PUBLIC ${imgui_SOURCE_DIR} ${imgui_SOURCE_DIR}/backends)
+target_include_directories(imgui PUBLIC
+        ${imgui_SOURCE_DIR}
+        ${imgui_SOURCE_DIR}/backends
+)
 target_link_libraries(imgui PUBLIC SDL3::SDL3)
 
 add_library(chip8core src/chip8_state.cpp
         src/chip8_state.hpp
+        src/random.hpp
         src/logo.hpp
 )
+target_include_directories(chip8core PUBLIC src)
 
 add_executable(chip8emu src/main.cpp
         src/debug_ui.cpp
         src/debug_ui.hpp
         src/app_state.hpp
-        src/random.hpp
-        src/utils_color.hpp)
+        src/utils_color.hpp
+)
+
+target_link_libraries(chip8emu PRIVATE
+        SDL3::SDL3
+        imgui
+        chip8core
+        chip8tools
+)
 
 add_library(chip8tools INTERFACE
         src/disassembler.hpp
 )
 
+target_include_directories(chip8tools INTERFACE src)
+
+
 add_executable(chip8tests
         tests/test_main.cpp
-        tests/test_utils.hpp
         tests/test_timers.cpp
         tests/test_font.cpp
         tests/test_save_load.cpp
-        tests/test_disassembler.cpp)
+        tests/test_disassembler.cpp
+)
 
-target_link_libraries(chip8tests PRIVATE chip8core)
-target_link_libraries(chip8tests PRIVATE chip8tools)
+target_link_libraries(chip8tests PRIVATE
+        chip8core
+        chip8tools
+)
 target_include_directories(chip8tests PRIVATE external)
+
 
 if(ENABLE_SANITIZERS)
     message(STATUS "enabling sanitizers")
@@ -83,10 +99,6 @@ else ()
     endif ()
 endif ()
 
-target_link_libraries(chip8emu PRIVATE SDL3::SDL3)
-target_link_libraries(chip8emu PRIVATE imgui)
-target_link_libraries(chip8emu PRIVATE chip8core)
-target_link_libraries(chip8emu PRIVATE chip8tools)
 
 add_custom_command(TARGET chip8emu POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory

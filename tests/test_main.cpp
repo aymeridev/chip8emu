@@ -1,8 +1,8 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
-#include "test_utils.hpp"
 
-#include "../external/doctest.h"
-#include "../src/chip8_state.hpp"
+#include "doctest.h"
+#include "chip8_state.hpp"
+
 
 TEST_SUITE_BEGIN("basic operations");
 TEST_CASE("add") {

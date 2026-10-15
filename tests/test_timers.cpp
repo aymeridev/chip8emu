@@ -1,5 +1,5 @@
-#include "../external/doctest.h"
-#include "../src/chip8_state.hpp"
+#include "doctest.h"
+#include "chip8_state.hpp"
 
 TEST_SUITE_BEGIN("timers");
 

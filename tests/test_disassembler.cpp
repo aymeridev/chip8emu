@@ -3,8 +3,8 @@
 #include <string>
 #include <string_view>
 
-#include "../external/doctest.h"
-#include "../src/disassembler.hpp"
+#include "doctest.h"
+#include "disassembler.hpp"
 
 namespace {
     struct Case {
