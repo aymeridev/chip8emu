@@ -12,18 +12,23 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 option(ENABLE_SANITIZERS "enable to use ASan/UBSan" ON)
 
 include(FetchContent)
+
 FetchContent_Declare(imgui
     GIT_REPOSITORY https://github.com/ocornut/imgui.git
     GIT_TAG v1.92.9b)
-
 FetchContent_MakeAvailable(imgui)
 
 FetchContent_Declare(SDL3
-    GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
-    GIT_TAG release-3.4.18
-)
-
+        GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
+        GIT_TAG release-3.4.18)
 FetchContent_MakeAvailable(SDL3)
+
+
+FetchContent_Declare(doctest
+        GIT_REPOSITORY https://github.com/doctest/doctest.git
+        GIT_TAG v2.5.3)
+FetchContent_MakeAvailable(doctest)
+
 
 add_library(imgui STATIC
         ${imgui_SOURCE_DIR}/imgui.cpp
@@ -82,10 +87,11 @@ add_executable(chip8tests
 target_link_libraries(chip8tests PRIVATE
         chip8core
         chip8tools
+        doctest::doctest
 )
-target_include_directories(chip8tests PRIVATE external)
 
-add_test(NAME tests COMMAND chip8tests)
+include("${doctest_SOURCE_DIR}/scripts/cmake/doctest.cmake")
+doctest_discover_tests(chip8tests)
 
 
 if(ENABLE_SANITIZERS)

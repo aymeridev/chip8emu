@@ -2,8 +2,8 @@
 #include <cstdint>
 #include <string>
 #include <string_view>
+#include <doctest.h>
 
-#include "doctest.h"
 #include "disassembler.hpp"
 
 namespace {

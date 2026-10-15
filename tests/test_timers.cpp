@@ -1,4 +1,5 @@
-#include "doctest.h"
+#include <doctest.h>
+
 #include "chip8_state.hpp"
 
 TEST_SUITE_BEGIN("timers");
