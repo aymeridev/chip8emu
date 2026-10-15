@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 4.3)
+cmake_minimum_required(VERSION 3.31)
 project(chip8emu VERSION 1.0.0
         DESCRIPTION "A CHIP-8 Emulator made with C++20 with an SDL3 Frontend."
         HOMEPAGE_URL "https://github.com/aymeridev/chip8emu"

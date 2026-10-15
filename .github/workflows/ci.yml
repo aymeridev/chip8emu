@@ -1,12 +1,12 @@
-name: ci.yml
+name: CI
 on:
   push:
   pull_request:
 
 jobs:
   build:
-    name: "build"
+    name: Run CMake Debug Workflow
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - run: cmake --version && g++ --version
+      - run: cmake --workflow --preset debug
