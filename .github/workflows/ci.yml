@@ -9,4 +9,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - run: cmake --workflow --preset debug
+      - run: cmake --workflow --preset debug -DSDL_UNIX_CONSOLE_BUILD=ON
