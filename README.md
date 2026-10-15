@@ -2,7 +2,7 @@
 
 ![video](https://aymeri.dev/projects/chip8emu_demo.gif)
 
-A CHIP-8 Emulator made with C++20 (and CMake >= 4.3), with an SDL3 Frontend, and a complete set of ImGui tools to inspect and debug ROMs.
+A CHIP-8 Emulator made with C++20 (and CMake >= 4.3), with an SDL3 Frontend, and a complete set of Dear ImGui tools to inspect and debug ROMs.
 
 The emulator currently passes tests 1 to 5 from [Timendus CHIP-8 Test Suite](https://github.com/Timendus/chip8-test-suite).
 
@@ -13,10 +13,10 @@ The emulator currently passes tests 1 to 5 from [Timendus CHIP-8 Test Suite](htt
 - Hexadecimal Memory Inspector (Show internal memory from 0x000 to 0x200 and 0x200 to 0xFFF for the rest)
 - Disassembler: List all the instructions of the current ROM, mapped to the instructions from Cowgod's Guide.
 - Display Settings: Change background/foreground color (and randomize colors)
-- Keypad support: Use the same keybinds as [Tobias V. Langhoff’s Guide](https://tobiasvl.github.io/blog/write-a-chip-8-emulator/#keypad). Use `ZQSD` (Azerty) to move in most of the games.
-- Browse games/tests roms in ./roms. Support for drag-and-drop.
+- Keypad support: Use the same keybinds as [Tobias V. Langhoff’s Guide](https://tobiasvl.github.io/blog/write-a-chip-8-emulator/#keypad). Use `ZQSD` (AZERTY) to move in most of the games.
+- Browse games/tests roms in `./roms`. Support for drag-and-drop.
 
-You can toggle on/off the imgui debugger using the `F1` key.
+You can toggle on/off the Dear ImGui debugger using the `F1` key.
 
 ### Roadmap
 
@@ -24,7 +24,6 @@ You can toggle on/off the imgui debugger using the `F1` key.
 - Remove all dynamic allocations
 - STM32 support
 - XO-CHIP support
-- Use CMake FetchContent for Doctest.
 
 ## Install
 
@@ -34,8 +33,7 @@ Prerequisites: a C++20 compiler and CMake >= 4.3.
 - Build the project:
 
 ```bash
-cmake -B cmake-build-debug # -DENABLE_SANITIZERS=OFF to disable sanitizers
-cmake --build cmake-build-debug
+cmake --build debug # (or release)
 ```
 
 - Run:
@@ -45,11 +43,10 @@ cd ./cmake-build-debug # (from the repository root)
 ./chip8emu
 ```
 
-- Run the tests:
+- Run the tests (via CTest):
 
 ```bash
-cd ./cmake-build-debug
-./chip8tests
+ctest --preset debug
 ```
 
 ## Credits
