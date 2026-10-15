@@ -30,17 +30,14 @@ You can toggle on/off the Dear ImGui debugger using the `F1` key.
 Prerequisites: a C++20 compiler and CMake >= 4.3.
 
 - Clone the repository
-- Build the project:
-
 ```bash
-cmake --build debug # (or release)
+git clone https://github.com/aymeridev/chip8emu.git
 ```
 
-- Run:
+- Run the project :
 
 ```bash
-cd ./cmake-build-debug # (from the repository root)
-./chip8emu
+cmake --workflow --preset debug
 ```
 
 - Run the tests (via CTest):
