@@ -5,6 +5,7 @@
 #include <array>
 #include <memory>
 #include "debug_ui.hpp"
+#include <vector>
 
 
 struct RomEntry {
