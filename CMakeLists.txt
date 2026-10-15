@@ -4,6 +4,8 @@ project(chip8emu VERSION 1.0.0
         HOMEPAGE_URL "https://github.com/aymeridev/chip8emu"
         LANGUAGES CXX)
 
+enable_testing()
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -82,6 +84,8 @@ target_link_libraries(chip8tests PRIVATE
         chip8tools
 )
 target_include_directories(chip8tests PRIVATE external)
+
+add_test(NAME tests COMMAND chip8tests)
 
 
 if(ENABLE_SANITIZERS)
