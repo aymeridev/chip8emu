@@ -6,22 +6,27 @@ on:
 jobs:
   build:
     name: Run CMake Debug Workflow
-    runs-on: ubuntu-latest
     strategy:
       matrix:
-        compilers: [['gcc', 'g++'], ['clang', 'clang++']]
+        compilers: [
+          { os: 'ubuntu-latest', cc: 'gcc', cxx: 'g++' },
+          { os: 'ubuntu-latest', cc: 'clang', cxx: 'clang++' },
+          { os: 'macos-latest', cc: 'clang', cxx: 'clang++' },
+        ]
+    runs-on: ${{ matrix.compilers.os }}
     env:
-      CC:  ${{ matrix.compilers[0] }}
-      CXX: ${{ matrix.compilers[1] }}
+      CC:  ${{ matrix.compilers.cc }}
+      CXX: ${{ matrix.compilers.cxx }}
     steps:
       - uses: actions/checkout@v7
-        # from https://wiki.libsdl.org/SDL3/README-linux#build-dependencies
       - name: Install Dependencies
+        if: ${{ runner.os == 'Linux' }}
+        # from https://wiki.libsdl.org/SDL3/README-linux#build-dependencies
         run: |
-          sudo apt-get update && sudo apt-get install -y build-essential pkg-config ninja-build \
-          gnome-desktop-testing libasound2-dev libpulse-dev libaudio-dev libfribidi-dev libjack-dev libsndio-dev \
-          libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev libxss-dev libxtst-dev \
-          libxkbcommon-dev libdrm-dev libgbm-dev libgl1-mesa-dev libgles2-mesa-dev libegl1-mesa-dev libdbus-1-dev \
-          libibus-1.0-dev libudev-dev libthai-dev libusb-1.0-0-dev
+          sudo apt-get update && sudo apt-get install -y build-essential pkg-config libasound2-dev libpulse-dev \
+          libaudio-dev libfribidi-dev libjack-dev libsndio-dev libx11-dev libxext-dev libxrandr-dev libxcursor-dev \
+          libxfixes-dev libxi-dev libxss-dev libxtst-dev libxkbcommon-dev libdrm-dev libgbm-dev libgl1-mesa-dev \
+          libgles2-mesa-dev libegl1-mesa-dev libdbus-1-dev libibus-1.0-dev libudev-dev libthai-dev libusb-1.0-0-dev
+
       - name: Run Workflow & Tests
         run: cmake --workflow --preset debug
