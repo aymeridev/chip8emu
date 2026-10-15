@@ -3,6 +3,7 @@
 #include <array>
 #include <string>
 #include <span>
+#include <optional>
 #include <cstdint>
 #include <initializer_list>
 

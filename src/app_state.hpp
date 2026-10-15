@@ -3,6 +3,7 @@
 #include <SDL3/SDL.h>
 
 #include <array>
+#include <memory>
 #include "debug_ui.hpp"
 
 

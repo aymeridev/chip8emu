@@ -2,6 +2,9 @@
 #include <fstream>
 #include <string>
 #include <iomanip>
+#include <vector>
+#include <algorithm>
+#include <cmath>
 
 #include "chip8_state.hpp"
 
