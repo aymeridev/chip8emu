@@ -45,6 +45,13 @@ add_library(chip8core src/chip8_state.cpp
 )
 target_include_directories(chip8core PUBLIC src)
 
+add_library(chip8tools INTERFACE
+        src/disassembler.hpp
+)
+
+target_include_directories(chip8tools INTERFACE src)
+add_library(chip8options INTERFACE)
+
 add_executable(chip8emu src/main.cpp
         src/debug_ui.cpp
         src/debug_ui.hpp
@@ -59,11 +66,7 @@ target_link_libraries(chip8emu PRIVATE
         chip8tools
 )
 
-add_library(chip8tools INTERFACE
-        src/disassembler.hpp
-)
 
-target_include_directories(chip8tools INTERFACE src)
 
 
 add_executable(chip8tests
@@ -86,18 +89,20 @@ if(ENABLE_SANITIZERS)
 endif ()
 
 if (MSVC)
-    target_compile_options(chip8emu PRIVATE /W4) # no UBSan with MSVC
+    target_compile_options(chip8options INTERFACE /W4) # no UBSan with MSVC
     if(ENABLE_SANITIZERS)
-        target_compile_options(chip8emu PRIVATE /fsanitize=address)
-        target_link_options(chip8emu PRIVATE -fsanitize=address)
+        target_compile_options(chip8options INTERFACE /fsanitize=address)
     endif ()
 else ()
-    target_compile_options(chip8emu PRIVATE -Wall -Wextra -Wpedantic)
+    target_compile_options(chip8options INTERFACE -Wall -Wextra -Wpedantic)
     if(ENABLE_SANITIZERS)
-        target_compile_options(chip8emu PRIVATE -fsanitize=address,undefined)
-        target_link_options(chip8emu PRIVATE -fsanitize=address,undefined)
+        target_compile_options(chip8options INTERFACE -fsanitize=address,undefined)
+        target_link_options(chip8options INTERFACE -fsanitize=address,undefined)
     endif ()
 endif ()
+
+target_link_libraries(chip8core PRIVATE chip8options)
+target_link_libraries(chip8tests PRIVATE chip8options)
 
 
 add_custom_command(TARGET chip8emu POST_BUILD
