@@ -103,6 +103,7 @@ endif ()
 
 target_link_libraries(chip8core PRIVATE chip8options)
 target_link_libraries(chip8tests PRIVATE chip8options)
+target_link_libraries(chip8emu PRIVATE chip8options)
 
 
 add_custom_command(TARGET chip8emu POST_BUILD

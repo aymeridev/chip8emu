@@ -24,11 +24,11 @@ You can toggle on/off the imgui debugger using the `F1` key.
 - Remove all dynamic allocations
 - STM32 support
 - XO-CHIP support
-- Use CMake FetchContent for SDL3 and Doctest.
+- Use CMake FetchContent for Doctest.
 
 ## Install
 
-Prerequisites: a C++20 compiler, CMake >= 4.3 and SDL3 installed locally.
+Prerequisites: a C++20 compiler and CMake >= 4.3.
 
 - Clone the repository
 - Build the project:
@@ -48,7 +48,7 @@ cd ./cmake-build-debug # (from the repository root)
 - Run the tests:
 
 ```bash
-cd ./cmake-build-debug # (run where you cloned the repository)
+cd ./cmake-build-debug
 ./chip8tests
 ```
 
