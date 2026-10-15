@@ -32,12 +32,14 @@ Prerequisites: a C++20 compiler and CMake >= 4.3.
 - Clone the repository
 ```bash
 git clone https://github.com/aymeridev/chip8emu.git
+cd chip8emu
 ```
 
 - Run the project :
 
 ```bash
 cmake --workflow --preset debug
+./build/debug/chip8emu
 ```
 
 - Run the tests (via CTest):
