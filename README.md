@@ -2,6 +2,8 @@
 
 ![video](https://aymeri.dev/projects/chip8emu_demo.gif)
 
+![CI Badge](https://github.com/aymeridev/chip8emu/actions/workflows/ci.yml/badge.svg)
+
 A CHIP-8 Emulator made with C++20 (and CMake >= 4.3), with an SDL3 Frontend, and a complete set of Dear ImGui tools to inspect and debug ROMs.
 
 The emulator currently passes tests 1 to 5 from [Timendus CHIP-8 Test Suite](https://github.com/Timendus/chip8-test-suite).
