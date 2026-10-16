@@ -6,6 +6,8 @@ project(chip8emu VERSION 1.0.0
 
 enable_testing()
 
+include(GNUInstallDirs)
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -21,12 +23,18 @@ FetchContent_MakeAvailable(imgui)
 FetchContent_Declare(SDL3
         GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
         GIT_TAG release-3.4.18)
+
+set(SDL_SHARED OFF CACHE BOOL "" FORCE)
+set(SDL_STATIC ON CACHE BOOL "" FORCE)
+
 FetchContent_MakeAvailable(SDL3)
 
 
 FetchContent_Declare(doctest
         GIT_REPOSITORY https://github.com/doctest/doctest.git
         GIT_TAG v2.5.3)
+
+set(DOCTEST_NO_INSTALL ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(doctest)
 
 
@@ -65,6 +73,8 @@ add_executable(chip8emu src/main.cpp
         src/app_state.hpp
         src/utils_color.hpp
 )
+install(TARGETS chip8emu DESTINATION . COMPONENT chip8emu)
+install(DIRECTORY roms DESTINATION . COMPONENT chip8emu)
 
 target_link_libraries(chip8emu PRIVATE
         SDL3::SDL3
@@ -72,9 +82,6 @@ target_link_libraries(chip8emu PRIVATE
         chip8core
         chip8tools
 )
-
-
-
 
 add_executable(chip8tests
         tests/test_main.cpp

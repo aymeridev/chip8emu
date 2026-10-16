@@ -2,12 +2,12 @@ name: Release
 on:
   push:
     tags:
-      - 'v**'
+      - 'v*'
   workflow_dispatch:
 
 jobs:
   build:
-    name: Run CMake Debug Workflow
+    name: Run CMake Release Workflow
     strategy:
       matrix:
         compilers: [
@@ -31,7 +31,9 @@ jobs:
 
       - name: Run Workflow Release
         run: cmake --workflow --preset release
+      - name: Install
+        run: cmake --install build/release --prefix dist --component chip8emu
       - uses: actions/upload-artifact@v7
         with:
           name: '[Release] ${{ runner.os }} ${{ github.ref_name }}'
-          path: ./build/release
+          path: ./dist
