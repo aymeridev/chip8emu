@@ -67,11 +67,15 @@ SDL_AppResult SDL_AppInit(void **appstate, int, char *[]) {
 
     SDL_ResumeAudioStreamDevice(state->stream);
 
-    for (const auto& path: list_roms_from_dir("./roms")) {
+    std::filesystem::path base = "./";
+
+    if (SDL_GetBasePath()) base = SDL_GetBasePath();
+    auto roms_path = std::filesystem::path(base / "roms");
+    for (const auto& path: list_roms_from_dir(std::filesystem::path(base / "roms"))) {
         state->roms.emplace_back(RomEntry { .path = path, .name = std::filesystem::path(path).filename(), .is_game = false });
     }
 
-    for (const auto& path: list_roms_from_dir("./roms/games")) {
+    for (const auto& path: list_roms_from_dir(std::filesystem::path(base / "roms" / "games"))) {
         state->roms.emplace_back(RomEntry { .path = path, .name = std::filesystem::path(path).filename(), .is_game = true });
     }
 
