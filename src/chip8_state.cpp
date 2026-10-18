@@ -1,5 +1,3 @@
-#include <iostream>
-#include <fstream>
 #include <string>
 #include <iomanip>
 #include <vector>
@@ -63,7 +61,6 @@ void Chip8State::reset() {
 bool Chip8State::load_rom(std::span<const uint8_t> rom_data) {
     reset();
     if (rom_data.size() > 4096 - 0x200) {
-        std::cerr << "load_rom: not enough memory";
         return false;
     }
     std::ranges::copy(rom_data, memory.begin() + 0x200);
@@ -104,8 +101,7 @@ bool Chip8State::cycle() {
 }
 
 
-
-void Chip8State::run_math(std::uint8_t n, std::uint8_t x, std::uint8_t y) {
+bool Chip8State::run_math(std::uint8_t n, std::uint8_t x, std::uint8_t y) {
     switch (n) {
         case 0: // assign
             v[x] = v[y];
@@ -164,12 +160,13 @@ void Chip8State::run_math(std::uint8_t n, std::uint8_t x, std::uint8_t y) {
             break;
         }
         default:
-            std::cerr << "unknown instruction " << n << "\n";
+            return false;
             break;
     }
+    return true;
 }
 
-void Chip8State::decode_and_execute(std::uint16_t instruction) {
+bool Chip8State::decode_and_execute(std::uint16_t instruction) {
 
     const std::uint16_t nnn = instruction & 0x0FFF;
     const std::uint8_t nn = instruction & 0x00FF;
@@ -254,7 +251,7 @@ void Chip8State::decode_and_execute(std::uint16_t instruction) {
                     const int dy = cy + mem_y;
 
                     if (dx >= screen_width) break;
-                    if (dy >= screen_height) return;
+                    if (dy >= screen_height) return true;
 
                     const bool new_pixel = (row >> (7 - sc_x)) & 1;
                     if (screen[dy][dx] && new_pixel) {
@@ -277,7 +274,7 @@ void Chip8State::decode_and_execute(std::uint16_t instruction) {
                     if (!keys[v[x] % 16]) pc += 2;
                     break;
                 default:
-                    std::cerr << "unknown instruction " << instruction << "\n";
+                    return false;
             }
             break;
         case 0xF:
@@ -322,14 +319,13 @@ void Chip8State::decode_and_execute(std::uint16_t instruction) {
                     i_reg += v[x];
                     break;
                 default:
-                    std::cout << "unknown 0xFx.. instruction:" << std::setw(4) << std::hex << std::uppercase << std::setfill('0') << instruction << "\n";
-                    break;
+                    return false;
             }
             break;
         default:
-            std::cout << "unknown instruction:" << std::setw(4) << std::hex << std::uppercase << std::setfill('0') << instruction << "\n";
-            break;
+            return false;
     }
+    return true;
 }
 
 void Chip8State::tick_timers() {

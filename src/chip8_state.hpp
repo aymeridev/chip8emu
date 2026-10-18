@@ -51,10 +51,12 @@ public:
 
     // fetch 4 bits from memory
     std::uint16_t fetch();
-    void decode_and_execute(std::uint16_t instruction);
+
+    bool decode_and_execute(std::uint16_t instruction);
 
 
 private:
     void clear_screen();
-    void run_math(std::uint8_t n, std::uint8_t x, std::uint8_t y);
+
+    bool run_math(std::uint8_t n, std::uint8_t x, std::uint8_t y);
 };
