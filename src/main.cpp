@@ -70,12 +70,12 @@ SDL_AppResult SDL_AppInit(void **appstate, int, char *[]) {
     std::filesystem::path base = "./";
 
     if (SDL_GetBasePath()) base = SDL_GetBasePath();
-    auto roms_path = std::filesystem::path(base / "roms");
-    for (const auto& path: list_roms_from_dir(std::filesystem::path(base / "roms"))) {
+    auto roms_base_dir = base / "roms";
+    for (const auto& path: list_roms_from_dir(roms_base_dir)) {
         state->roms.emplace_back(RomEntry { .path = path, .name = std::filesystem::path(path).filename(), .is_game = false });
     }
 
-    for (const auto& path: list_roms_from_dir(std::filesystem::path(base / "roms" / "games"))) {
+    for (const auto& path: list_roms_from_dir(roms_base_dir / "games")) {
         state->roms.emplace_back(RomEntry { .path = path, .name = std::filesystem::path(path).filename(), .is_game = true });
     }
 
@@ -110,7 +110,7 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
         std::cout << file_path << std::endl;
 
         if (std::filesystem::path(file_path).extension() == ".8o") {
-            if (!state->chip8_state.load_rom(file_path)) {
+            if (!load_rom_from_file(state, file_path)) {
                 show_message(state, "Error while loading file");
             }
         } else if(state->debug_ui) {

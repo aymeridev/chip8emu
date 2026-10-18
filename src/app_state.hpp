@@ -50,6 +50,7 @@ public:
     float last_tick;
     std::array<std::string, 16> register_names = {};
 
+    std::string rom_file_path;
 
     bool enable_audio = true;
     float volume = 0.5f;

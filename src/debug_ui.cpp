@@ -125,7 +125,7 @@ namespace {
                 appstate->pause = true;
                 appstate->chip8_state.cycle();
             }
-            ImGui::Text("Current Rom: %s", appstate->chip8_state.rom_file_path.c_str());
+            ImGui::Text("Current Rom: %s", appstate->rom_file_path.c_str());
             ImGui::Text("Program Counter: %d", appstate->chip8_state.pc);
             ImGui::Text("Stack Pointer: %d", appstate->chip8_state.sp);
             ImGui::Text("Sound Timer: %d", appstate->chip8_state.sound_timer);
@@ -148,18 +148,18 @@ namespace {
             }
         }
 
-        const std::string& current_path = appstate->chip8_state.rom_file_path;
+        const std::string& current_path = appstate->rom_file_path;
         if (ImGui::BeginCombo("roms list", current_path.empty() ? "no rom loaded" : current_path.data())) {
             ImGui::Selectable("Demo Roms", false, ImGuiSelectableFlags_Highlight | ImGuiSelectableFlags_Disabled);
             bool games_section = false;
-            for (const auto& rom : appstate->roms) {
-                if (rom.is_game && !games_section) {
+            for (const auto&[path, name, is_game] : appstate->roms) {
+                if (is_game && !games_section) {
                     ImGui::Spacing();
                     ImGui::Selectable("Game Roms", false, ImGuiSelectableFlags_Highlight | ImGuiSelectableFlags_Disabled);
                     games_section = true;
                 }
-                if (ImGui::Selectable(rom.name.data(), rom.path == current_path)) {
-                    appstate->chip8_state.load_rom(rom.path);
+                if (ImGui::Selectable(name.data(), path == current_path)) {
+                    load_rom_from_file(appstate, path);
                 }
             }
             ImGui::EndCombo();

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <array>
-#include <string>
 #include <span>
 #include <optional>
 #include <cstdint>
@@ -14,7 +13,6 @@ class Chip8State {
 public:
     Chip8State();
 
-    std::string rom_file_path;
     std::array<std::uint8_t, 16> v; // general registers
     uint16_t i_reg; // store memory address
     uint16_t pc = 0x200; // program counter
@@ -40,8 +38,7 @@ public:
     bool screen[screen_height][screen_width];
 
     void reset();
-    bool load_rom(const std::string &file_path);
-    bool load_rom(std::span<uint8_t> &rom_data);
+    bool load_rom(std::span<const uint8_t> rom_data);
 
 
     /**

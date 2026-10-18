@@ -60,36 +60,7 @@ void Chip8State::reset() {
     sp = 0;
 }
 
-bool Chip8State::load_rom(const std::string &file_path) {
-    reset();
-
-    std::ifstream file (file_path, std::ios::binary | std::ios::ate);
-    if (!file) {
-        std::cerr << "load_rom: cannot open " << file_path << "\n";
-        return false;
-    }
-
-    std::streamsize size = file.tellg();
-    file.seekg(0, std::ios::beg);
-
-    std::vector<std::uint8_t> bytes(size);
-    file.read(reinterpret_cast<char*>(bytes.data()), size);
-
-    if (bytes.size() > memory.size() - 0x200) {
-        std::cout << "load_rom: not enough memory";
-        return false;
-    }
-
-    std::ranges::copy(bytes, memory.begin() + 0x200);
-
-    std::cout << "read " << file.gcount() << " bytes\n";
-
-    rom_file_path = file_path;
-    rom_loaded = true;
-    return true;
-}
-
-bool Chip8State::load_rom(std::span<uint8_t> &rom_data) {
+bool Chip8State::load_rom(std::span<const uint8_t> rom_data) {
     reset();
     if (rom_data.size() > 4096 - 0x200) {
         std::cerr << "load_rom: not enough memory";
