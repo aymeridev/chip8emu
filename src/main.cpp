@@ -148,7 +148,7 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
 
     if (state->cycle_timer <= 0.0f) {
         for (int i = 0; i < state->cycles_per_tick; ++i) {
-            if (!state->chip8_state.cycle()) state->pause = true;
+            if (state->chip8_state.cycle() == Chip8Error::PcOutOfBounds) state->pause = true;
         }
         state->cycle_timer = cycle_total_timer;
     }

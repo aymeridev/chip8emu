@@ -9,6 +9,16 @@
 constexpr int screen_width = 64;
 constexpr int screen_height = 32;
 
+
+enum class Chip8Error : std::uint8_t {
+    None,
+    UnknownOpcode,
+    StackOverflow,
+    StackUnderflow,
+    PcOutOfBounds,
+};
+
+
 class Chip8State {
 public:
     Chip8State();
@@ -41,22 +51,18 @@ public:
     bool load_rom(std::span<const uint8_t> rom_data);
 
 
-    /**
-     *
-     * @return return true while the run has not reached the end of memory
-     */
-    bool cycle();
 
     void update_key(std::uint8_t index, bool enabled);
 
     // fetch 4 bits from memory
     std::uint16_t fetch();
 
-    bool decode_and_execute(std::uint16_t instruction);
+    Chip8Error cycle();
+    Chip8Error decode_and_execute(std::uint8_t instruction);
 
 
 private:
     void clear_screen();
 
-    bool run_math(std::uint8_t n, std::uint8_t x, std::uint8_t y);
+    Chip8Error run_math(std::uint8_t n, std::uint8_t x, std::uint8_t y);
 };

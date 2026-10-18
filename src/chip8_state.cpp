@@ -2,7 +2,6 @@
 #include <iomanip>
 #include <vector>
 #include <algorithm>
-#include <cmath>
 
 #include "chip8_state.hpp"
 
@@ -37,6 +36,12 @@ Chip8State::Chip8State() {
     }
 }
 
+void Chip8State::tick_timers() {
+    if (delay_timer > 0) delay_timer--;
+    if (sound_timer >0) sound_timer--;
+    waiting_for_vblank = false;
+}
+
 void Chip8State::reset() {
     rom_loaded = false;
     memory.fill(0);
@@ -58,6 +63,8 @@ void Chip8State::reset() {
     sp = 0;
 }
 
+
+
 bool Chip8State::load_rom(std::span<const uint8_t> rom_data) {
     reset();
     if (rom_data.size() > 4096 - 0x200) {
@@ -68,6 +75,23 @@ bool Chip8State::load_rom(std::span<const uint8_t> rom_data) {
     return true;
 }
 
+Chip8Error Chip8State::cycle() {
+    if (pc >= 4094) return Chip8Error::PcOutOfBounds;
+
+    // see Fx0A : stop execution until the target key is pressed
+    if (register_listening_for_key.has_value()) return Chip8Error::None;
+
+    if (waiting_for_vblank) return Chip8Error::None;
+    return decode_and_execute(fetch());
+}
+
+void Chip8State::update_key(const std::uint8_t index, const bool enabled) {
+    keys[index] = enabled;
+    if (register_listening_for_key.has_value() && enabled) {
+        v[register_listening_for_key.value()] = index;
+        register_listening_for_key = std::nullopt;
+    }
+}
 
 
 std::uint16_t Chip8State::fetch() {
@@ -80,28 +104,169 @@ std::uint16_t Chip8State::fetch() {
     return instr;
 }
 
-void Chip8State::update_key(const std::uint8_t index, const bool enabled) {
-    keys[index] = enabled;
-    if (register_listening_for_key.has_value() && enabled) {
-        v[register_listening_for_key.value()] = index;
-        register_listening_for_key = std::nullopt;
+Chip8Error Chip8State::decode_and_execute(std::uint8_t instruction) {
+
+    const std::uint16_t nnn = instruction & 0x0FFF;
+    const std::uint8_t nn = instruction & 0x00FF;
+    const std::uint8_t n = instruction & 0x000F;
+    const std::uint8_t x = (instruction >> 8) & 0x0F;
+    const std::uint8_t y = (instruction >> 4) & 0x0F;
+
+    switch (instruction >> 12) { // group of instruction
+        case 0:
+            if (instruction == 0x00E0) { // CLS
+                clear_screen();
+            } else if (instruction == 0x00EE && sp > 0) { // RET
+                sp--;
+                pc = stack[sp];
+            }
+            break;
+        case 1: // JUMP
+            pc = nnn;
+            break;
+        case 2:
+            stack[sp % 16] = pc;
+            sp++;
+            pc = nnn;
+            break;
+        case 3:
+            if (v[x] == nn) {
+                pc += 2;
+            }
+            break;
+        case 4:
+            if (v[x] != nn) {
+                pc += 2;
+            }
+            break;
+        case 5:
+            if (n == 0 && v[x] == v[y]) pc += 2;
+            /* XO-CHIP */ if (n == 2) break;
+            /* XO-CHIP */ if (n == 3) break;
+            break;
+        case 6:
+            v[x] = nn;
+            break;
+        case 7:
+            v[x] += nn;
+            break;
+        case 8:
+            run_math(n, x, y);
+            break;
+        case 9:
+            if (n == 0 && v[x] != v[y]) {
+                pc += 2;
+            }
+            break;
+        case 0xA:
+            i_reg = nnn;
+            break;
+        case 0xB:
+            pc = (nnn + v[0]) & 0x0FFF;
+            break;
+        case 0xC:
+            v[x] = xorshift32() & nn;
+            break;
+        case 0xD: { // display
+
+            // get coordinates
+            const int cx = v[x] % screen_width;
+            const int cy = v[y] % screen_height;
+            v[0xF] = 0;
+            for (int mem_y = 0; mem_y < n; ++mem_y) {
+                const std::uint8_t row = memory[i_reg + mem_y];
+
+                for (int sc_x = 0; sc_x < 8; ++sc_x) {
+                    const int dx = cx + sc_x;
+                    const int dy = cy + mem_y;
+
+                    if (dx >= screen_width) break;
+                    if (dy >= screen_height) return Chip8Error::None;
+
+                    const bool new_pixel = (row >> (7 - sc_x)) & 1;
+                    if (screen[dy][dx] && new_pixel) {
+                        v[0xF] = 1;
+                    }
+                    screen[dy][dx] = screen[dy][dx] ^ new_pixel;
+                }
+            }
+
+            waiting_for_vblank = true;
+
+            break;
+        }
+        case 0xE:
+            switch (nn) {
+                case 0x9E: // SKP Vx
+                    if (keys[v[x] % 16]) pc += 2;
+                    break;
+                case 0xA1: // SKNP Vx
+                    if (!keys[v[x] % 16]) pc += 2;
+                    break;
+                default:
+                    return Chip8Error::UnknownOpcode;
+            }
+            break;
+        case 0xF:
+            switch (nn) {
+                case 0x00:
+                    i_reg = fetch();
+                    break;
+                case 0x07:
+                    v[x] = delay_timer;
+                    break;
+                case 0x0A:
+                    register_listening_for_key = x;
+                    break;
+                case 0x15:
+                    delay_timer = v[x];
+                    break;
+                case 0x18:
+                    sound_timer = v[x];
+                    break;
+                case 0x29: // hex vX
+                    i_reg = 0x50 + (v[x] % 16) * 5;
+                    break;
+                case 0x33: // bcd
+                    if (i_reg < 4096) memory[i_reg] = static_cast<uint8_t>(v[x] / 100);
+                    if (i_reg < 4095) memory[i_reg + 1] = static_cast<uint8_t>(v[x] / 10 % 10);
+                    if (i_reg < 4094) memory[i_reg + 2] = v[x] % 10;
+                    break;
+                case 0x55: // save
+                    for (std::size_t idx = 0; idx <= x; ++idx) {
+                        if (i_reg + idx < 4096) memory[i_reg + idx] = v[idx];
+                    }
+                    i_reg += x + 1;
+                    break;
+                case 0x65: // load
+                    for (std::size_t idx = 0; idx <= x; ++idx) {
+                        if (i_reg + idx < 4096) v[idx] = memory[i_reg + idx];
+                    }
+                    i_reg += x + 1;
+                    break;
+
+                case 0x1E:
+                    i_reg += v[x];
+                    break;
+                default:
+                    return Chip8Error::UnknownOpcode;
+            }
+            break;
+        default:
+            return Chip8Error::UnknownOpcode;
+    }
+    return Chip8Error::None;
+}
+
+void Chip8State::clear_screen() {
+    for (auto & row_y : screen) {
+        for (bool & pixel_x : row_y) {
+            pixel_x = false;
+        }
     }
 }
 
-bool Chip8State::cycle() {
-    if (pc >= 4094) return false;
-
-    // see Fx0A : stop execution until the target key is pressed
-    if (register_listening_for_key.has_value()) return true;
-
-    if (waiting_for_vblank) return true;
-    const auto instr = fetch();
-    decode_and_execute(instr);
-    return pc < 4094;
-}
-
-
-bool Chip8State::run_math(std::uint8_t n, std::uint8_t x, std::uint8_t y) {
+Chip8Error Chip8State::run_math(std::uint8_t n, std::uint8_t x, std::uint8_t y) {
     switch (n) {
         case 0: // assign
             v[x] = v[y];
@@ -160,184 +325,8 @@ bool Chip8State::run_math(std::uint8_t n, std::uint8_t x, std::uint8_t y) {
             break;
         }
         default:
-            return false;
+            return Chip8Error::UnknownOpcode;
             break;
     }
-    return true;
-}
-
-bool Chip8State::decode_and_execute(std::uint16_t instruction) {
-
-    const std::uint16_t nnn = instruction & 0x0FFF;
-    const std::uint8_t nn = instruction & 0x00FF;
-    const std::uint8_t n = instruction & 0x000F;
-    const std::uint8_t x = (instruction >> 8) & 0x0F;
-    const std::uint8_t y = (instruction >> 4) & 0x0F;
-
-    // std::cout << std::setw(4) << std::hex << std::uppercase << std::setfill('0') << instruction << "\n";
-    // std::cout << std::setw(4) << std::hex << std::uppercase << std::setfill('0') << "nnn: " << nnn << "\n";
-    // std::cout << std::setw(4) << std::hex << std::uppercase << std::setfill('0') << "nn : " << nn << "\n";
-    // std::cout << std::setw(4) << std::hex << std::uppercase << std::setfill('0') << "n  : " << +n << "\n";
-    // std::cout << std::setw(4) << std::hex << std::uppercase << std::setfill('0') << "x  : " << +x << "\n";
-
-    // std::cout << std::setw(4) << std::hex << std::uppercase << std::setfill('0') << nnn << "\n";
-
-    switch (instruction >> 12) { // group of instruction
-        case 0:
-            if (instruction == 0x00E0) { // CLS
-                clear_screen();
-            } else if (instruction == 0x00EE) { // RET
-                sp--;
-                pc = stack[sp];
-            }
-            break;
-        case 1: // JUMP
-            pc = nnn;
-            break;
-        case 2:
-            stack[sp] = pc;
-            sp++;
-            pc = nnn;
-            break;
-        case 3:
-            if (v[x] == nn) {
-                pc += 2;
-            }
-            break;
-        case 4:
-            if (v[x] != nn) {
-                pc += 2;
-            }
-            break;
-        case 5:
-            if (n == 0 && v[x] == v[y]) pc += 2;
-            /* XO-CHIP */ if (n == 2) break;
-            /* XO-CHIP */ if (n == 3) break;
-            break;
-        case 6:
-            v[x] = nn;
-            break;
-        case 7:
-            v[x] += nn;
-            break;
-        case 8:
-            run_math(n, x, y);
-            break;
-        case 9:
-            if (n == 0 && v[x] != v[y]) {
-                pc += 2;
-            }
-            break;
-        case 0xA:
-            i_reg = nnn;
-            break;
-        case 0xB:
-            pc = (nnn + v[0]) & 0x0FFF;
-            break;
-        case 0xC:
-            v[x] = xorshift32() & nn;
-            break;
-        case 0xD: { // display
-
-            // get coordinates
-            const int cx = v[x] % screen_width;
-            const int cy = v[y] % screen_height;
-            v[0xF] = 0;
-            for (int mem_y = 0; mem_y < n; ++mem_y) {
-                const std::uint8_t row = memory[i_reg + mem_y];
-
-                for (int sc_x = 0; sc_x < 8; ++sc_x) {
-                    const int dx = cx + sc_x;
-                    const int dy = cy + mem_y;
-
-                    if (dx >= screen_width) break;
-                    if (dy >= screen_height) return true;
-
-                    const bool new_pixel = (row >> (7 - sc_x)) & 1;
-                    if (screen[dy][dx] && new_pixel) {
-                        v[0xF] = 1;
-                    }
-                    screen[dy][dx] = screen[dy][dx] ^ new_pixel;
-                }
-            }
-
-            waiting_for_vblank = true;
-
-            break;
-        }
-        case 0xE:
-            switch (nn) {
-                case 0x9E: // SKP Vx
-                    if (keys[v[x] % 16]) pc += 2;
-                    break;
-                case 0xA1: // SKNP Vx
-                    if (!keys[v[x] % 16]) pc += 2;
-                    break;
-                default:
-                    return false;
-            }
-            break;
-        case 0xF:
-            switch (nn) {
-                case 0x00:
-                    i_reg = fetch();
-                    break;
-                case 0x07:
-                    v[x] = delay_timer;
-                    break;
-                case 0x0A:
-                    register_listening_for_key = x;
-                    break;
-                case 0x15:
-                    delay_timer = v[x];
-                    break;
-                case 0x18:
-                    sound_timer = v[x];
-                    break;
-                case 0x29: // hex vX
-                    i_reg = 0x50 + (v[x] % 16) * 5;
-                    break;
-                case 0x33: // bcd
-                    if (i_reg < 4096) memory[i_reg] = static_cast<uint8_t>(v[x] / 100);
-                    if (i_reg < 4095) memory[i_reg + 1] = static_cast<uint8_t>(std::floor(v[x] / 10 % 10));
-                    if (i_reg < 4094) memory[i_reg + 2] = v[x] % 10;
-                    break;
-                case 0x55: // save
-                    for (std::size_t idx = 0; idx <= x; ++idx) {
-                        if (i_reg + idx < 4096) memory[i_reg + idx] = v[idx];
-                    }
-                    i_reg += x + 1;
-                    break;
-                case 0x65: // load
-                    for (std::size_t idx = 0; idx <= x; ++idx) {
-                        if (i_reg + idx < 4096) v[idx] = memory[i_reg + idx];
-                    }
-                    i_reg += x + 1;
-                    break;
-
-                case 0x1E:
-                    i_reg += v[x];
-                    break;
-                default:
-                    return false;
-            }
-            break;
-        default:
-            return false;
-    }
-    return true;
-}
-
-void Chip8State::tick_timers() {
-    if (delay_timer > 0) delay_timer--;
-    if (sound_timer >0) sound_timer--;
-    waiting_for_vblank = false;
-}
-
-void Chip8State::clear_screen() {
-    for (auto & row_y : screen) {
-        for (bool & pixel_x : row_y) {
-            pixel_x = false;
-        }
-    }
+    return Chip8Error::None;
 }
