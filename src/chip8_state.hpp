@@ -58,7 +58,7 @@ public:
     std::uint16_t fetch();
 
     Chip8Error cycle();
-    Chip8Error decode_and_execute(std::uint8_t instruction);
+    Chip8Error decode_and_execute(uint16_t instruction);
 
 
 private:

@@ -1,6 +1,3 @@
-#include <string>
-#include <iomanip>
-#include <vector>
 #include <algorithm>
 
 #include "chip8_state.hpp"
@@ -97,14 +94,14 @@ void Chip8State::update_key(const std::uint8_t index, const bool enabled) {
 std::uint16_t Chip8State::fetch() {
     const std::uint8_t left = memory[pc];
     const std::uint8_t right = memory[pc + 1];
-    const std::uint16_t instr = (left << 8) | right;
+    const auto instr = static_cast<uint16_t>((left << 8) | right);
 
     pc += 2;
 
     return instr;
 }
 
-Chip8Error Chip8State::decode_and_execute(std::uint8_t instruction) {
+Chip8Error Chip8State::decode_and_execute(uint16_t instruction) {
 
     const std::uint16_t nnn = instruction & 0x0FFF;
     const std::uint8_t nn = instruction & 0x00FF;
@@ -174,7 +171,7 @@ Chip8Error Chip8State::decode_and_execute(std::uint8_t instruction) {
             const int cy = v[y] % screen_height;
             v[0xF] = 0;
             for (int mem_y = 0; mem_y < n; ++mem_y) {
-                const std::uint8_t row = memory[i_reg + mem_y];
+                const std::uint8_t row = memory[static_cast<uint8_t>(i_reg + mem_y)];
 
                 for (int sc_x = 0; sc_x < 8; ++sc_x) {
                     const int dx = cx + sc_x;
