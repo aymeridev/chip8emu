@@ -1,4 +1,7 @@
+#include <array>
+#include <cstdint>
 #include <doctest.h>
+#include <span>
 
 #include "chip8_state.hpp"
 
@@ -10,7 +13,7 @@ TEST_CASE("Fx15 sets the delay timer from Vx") {
         0x60, 0x0A, // V0 = 10
         0xF0, 0x15, // delay_timer = V0
     };
-    std::span<std::uint8_t> sp_mem = mem;
+    const std::span<std::uint8_t> sp_mem = mem;
     chip.load_rom(sp_mem);
     chip.cycle();
     chip.cycle();
@@ -24,7 +27,7 @@ TEST_CASE("Fx07 reads the delay timer into Vx") {
         0xF0, 0x15, // delay_timer = V0
         0xF1, 0x07, // V1 = delay_timer
     };
-    std::span<std::uint8_t> sp_mem = mem;
+    const std::span<std::uint8_t> sp_mem = mem;
     chip.load_rom(sp_mem);
     for (int i = 0; i < 3; ++i) chip.cycle();
     CHECK(chip.v[1] == 10);
@@ -36,7 +39,7 @@ TEST_CASE("Fx18 sets the sound timer from Vx") {
         0x60, 0x05, // V0 = 5
         0xF0, 0x18, // sound_timer = V0
     };
-    std::span<std::uint8_t> sp_mem = mem;
+    const std::span<std::uint8_t> sp_mem = mem;
     chip.load_rom(sp_mem);
     chip.cycle();
     chip.cycle();

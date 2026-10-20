@@ -3,7 +3,6 @@
 #include "app_state.hpp"
 #include "debug_ui.hpp"
 
-#include <imgui_internal.h>
 #include <iostream>
 
 #include "disassembler.hpp"
@@ -171,7 +170,7 @@ namespace {
     void draw_disassembler(AppState* appstate, const ImVec2 pos, const ImVec2 size) {
         ImGui::SetNextWindowPos(pos);
         ImGui::SetNextWindowSize(size);
-        auto chip = appstate->chip8_state;
+        const auto chip = appstate->chip8_state;
 
 
         if (!ImGui::Begin("Disassembler", nullptr, default_window_flags)) {

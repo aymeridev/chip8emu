@@ -1,4 +1,7 @@
+#include <array>
+#include <cstdint>
 #include <doctest.h>
+#include <span>
 
 #include "chip8_state.hpp"
 
@@ -31,7 +34,7 @@ TEST_CASE("Fx55 with x = 0 still saves V0") {
         0xA3, 0x00, // I = 0x300
         0xF0, 0x55, // save V0
     };
-    std::span<std::uint8_t> sp_mem = mem;
+    const std::span<std::uint8_t> sp_mem = mem;
     chip.load_rom(sp_mem);
     for (int c = 0; c < 3; ++c) chip.cycle();
 

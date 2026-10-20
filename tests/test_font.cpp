@@ -1,4 +1,8 @@
+#include <array>
+#include <cstdint>
 #include <doctest.h>
+#include <tuple>
+#include <span>
 
 #include "chip8_state.hpp"
 
@@ -18,7 +22,7 @@ TEST_CASE("Fx33 stores the decimal digits of Vx at I") {
         0xF0, 0x33,                             // BCD of V0 at I
     };
     std::span<std::uint8_t> sp_mem = mem;
-    chip.load_rom(sp_mem);
+    CHECK(chip.load_rom(sp_mem));
     for (int c = 0; c < 3; ++c) chip.cycle();
 
     CHECK(chip.memory[0x300] == hundreds);

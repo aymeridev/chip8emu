@@ -1,3 +1,6 @@
+#include <array>
+#include <cstdint>
+#include <span>
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 
 #include <doctest.h>
@@ -14,8 +17,8 @@ TEST_CASE("add") {
     };
     std::span<std::uint8_t> sp_mem = mem;
     chip.load_rom(sp_mem);
-    CHECK(chip.cycle());
-    CHECK(chip.cycle());
+    CHECK(chip.cycle() == Chip8Error::None);
+    CHECK(chip.cycle() == Chip8Error::None);
     CHECK(chip.v[0] == 5);
 }
 TEST_SUITE_END;

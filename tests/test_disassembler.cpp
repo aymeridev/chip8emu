@@ -1,3 +1,4 @@
+// ReSharper disable CppUseDesignatedInitializers
 #include <array>
 #include <cstdint>
 #include <string>

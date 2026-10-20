@@ -5,6 +5,8 @@
 #include <iostream>
 #include <fstream>
 
+#include "chip8_state.hpp"
+
 inline std::vector<std::string> list_roms_from_dir(const std::string& path) {
     std::vector<std::string> roms;
     if (!std::filesystem::is_directory(path)) return roms;
@@ -26,10 +28,10 @@ inline bool load_rom_from_file(AppState* state, const std::string &file_path) {
         return false;
     }
 
-    std::streamsize size = file.tellg();
+    const std::streamsize size = file.tellg();
     file.seekg(0, std::ios::beg);
 
-    std::vector<std::uint8_t> bytes(size);
+    std::vector<std::uint8_t> bytes(static_cast<std::uint8_t>(size));
     file.read(reinterpret_cast<char*>(bytes.data()), size);
 
     if (bytes.size() > state->chip8_state.memory.size() - 0x200) {

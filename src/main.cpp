@@ -3,7 +3,6 @@
 #include <imgui_impl_sdl3.h>
 #include <iostream>
 #include <memory>
-#include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 #include <string>
 #include <filesystem>
@@ -34,7 +33,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int, char *[]) {
     auto* state = new AppState;
     *appstate = state;
 
-    SDL_AudioSpec spec { SDL_AUDIO_F32, 1, 44100 };
+    constexpr SDL_AudioSpec spec { SDL_AUDIO_F32, 1, 44100 };
     state->stream = SDL_OpenAudioDeviceStream(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &spec, nullptr, nullptr);
     if (!state->stream) {
         SDL_Log("Couldn't open audio device: %s", SDL_GetError());
@@ -70,7 +69,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int, char *[]) {
     std::filesystem::path base = "./";
 
     if (SDL_GetBasePath()) base = SDL_GetBasePath();
-    auto roms_base_dir = base / "roms";
+    const auto roms_base_dir = base / "roms";
     for (const auto& path: list_roms_from_dir(roms_base_dir)) {
         state->roms.emplace_back(RomEntry { .path = path, .name = std::filesystem::path(path).filename(), .is_game = false });
     }
