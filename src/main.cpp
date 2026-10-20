@@ -2,6 +2,7 @@
 
 #include <imgui_impl_sdl3.h>
 #include <iostream>
+#include <random>
 #include <memory>
 #include <SDL3/SDL_main.h>
 #include <string>
@@ -10,6 +11,7 @@
 #include "app_state.hpp"
 #include "chip8_state.hpp"
 #include "debug_ui.hpp"
+#include "random.hpp"
 #include "utils_color.hpp"
 #include "utils_io.hpp"
 
@@ -45,6 +47,10 @@ SDL_AppResult SDL_AppInit(void **appstate, int, char *[]) {
         &state->window, &state->renderer)) {
         SDL_Log("Couldn't create window/renderer: %s", SDL_GetError());
         return SDL_APP_FAILURE;
+    }
+
+    if (std::random_device rd; !set_seed(rd())) {
+        SDL_Log("Couldn't set random seed: %s", SDL_GetError());
     }
 
     state->texture = SDL_CreateTexture(state->renderer, SDL_PIXELFORMAT_ABGR32, SDL_TEXTUREACCESS_STREAMING, 64, 32);
