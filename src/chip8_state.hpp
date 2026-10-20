@@ -42,6 +42,7 @@ public:
     std::uint8_t delay_timer = 0;
     std::uint8_t sound_timer = 0;
     bool rom_loaded = false;
+    bool screen_dirty = false;
 
     void tick_timers();
 

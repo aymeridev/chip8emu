@@ -166,6 +166,7 @@ Chip8Error Chip8State::decode_and_execute(uint16_t instruction) {
             v[x] = static_cast<uint8_t>(xorshift32()) & nn;
             break;
         case 0xD: { // display
+            screen_dirty = true;
 
             // get coordinates
             const int cx = v[x] % screen_width;
