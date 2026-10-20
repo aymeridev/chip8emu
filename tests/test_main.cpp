@@ -43,3 +43,30 @@ TEST_CASE("subroutines work") {
     CHECK(chip.v[1] == 5);
 }
 TEST_SUITE_END;
+
+
+
+TEST_SUITE_BEGIN("stack overflow/underflow");
+
+TEST_CASE("stack overflow") {
+    auto chip = Chip8State {};
+    auto mem = std::array<std::uint8_t, 2> {
+        0x22, 0x00
+    };
+    chip.load_rom(mem);
+
+    for (int i = 0; i < 15; ++i) CHECK(chip.cycle() == Chip8Error::None);
+    CHECK(chip.cycle() == Chip8Error::StackOverflow);
+}
+
+TEST_CASE("stack underflow") {
+    auto chip = Chip8State {};
+    auto mem = std::array<std::uint8_t, 2> {
+        0x00, 0xEE
+    };
+    chip.load_rom(mem);
+
+    CHECK(chip.cycle() == Chip8Error::StackUnderflow);
+}
+
+TEST_SUITE_END;

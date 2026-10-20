@@ -113,7 +113,8 @@ Chip8Error Chip8State::decode_and_execute(uint16_t instruction) {
         case 0:
             if (instruction == 0x00E0) { // CLS
                 clear_screen();
-            } else if (instruction == 0x00EE && sp > 0) { // RET
+            } else if (instruction == 0x00EE) { // RET
+                if (sp == 0) return Chip8Error::StackUnderflow;
                 sp--;
                 pc = stack[sp];
             }
@@ -122,6 +123,7 @@ Chip8Error Chip8State::decode_and_execute(uint16_t instruction) {
             pc = nnn;
             break;
         case 2:
+            if (sp >= 15) return Chip8Error::StackOverflow;
             stack[sp % 16] = pc;
             sp++;
             pc = nnn;
@@ -148,8 +150,7 @@ Chip8Error Chip8State::decode_and_execute(uint16_t instruction) {
             v[x] += nn;
             break;
         case 8:
-            run_math(n, x, y);
-            break;
+            return run_math(n, x, y);
         case 9:
             if (n == 0 && v[x] != v[y]) {
                 pc += 2;
