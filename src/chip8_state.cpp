@@ -171,14 +171,17 @@ Chip8Error Chip8State::decode_and_execute(uint16_t instruction) {
             const int cy = v[y] % screen_height;
             v[0xF] = 0;
             for (int mem_y = 0; mem_y < n; ++mem_y) {
-                const std::uint8_t row = memory[static_cast<uint8_t>(i_reg + mem_y)];
+                const std::uint8_t row = memory[static_cast<uint16_t>(i_reg + mem_y)];
 
                 for (int sc_x = 0; sc_x < 8; ++sc_x) {
                     const int dx = cx + sc_x;
                     const int dy = cy + mem_y;
 
                     if (dx >= screen_width) break;
-                    if (dy >= screen_height) return Chip8Error::None;
+                    if (dy >= screen_height) {
+                        waiting_for_vblank = true;
+                        return Chip8Error::None;
+                    }
 
                     const bool new_pixel = (row >> (7 - sc_x)) & 1;
                     if (screen[dy][dx] && new_pixel) {

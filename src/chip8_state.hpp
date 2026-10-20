@@ -8,7 +8,7 @@
 
 constexpr int screen_width = 64;
 constexpr int screen_height = 32;
-constexpr int memory_size = 0xFFF; // 4096
+constexpr int memory_size = 0x1000; // 4096
 constexpr int memory_data_start = 0x200; // 512
 
 enum class Chip8Error : std::uint8_t {

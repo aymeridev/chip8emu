@@ -89,6 +89,7 @@ add_executable(chip8tests
         tests/test_font.cpp
         tests/test_save_load.cpp
         tests/test_disassembler.cpp
+        tests/test_display.cpp
 )
 
 target_link_libraries(chip8tests PRIVATE
@@ -111,7 +112,7 @@ if (MSVC)
         target_compile_options(chip8options INTERFACE /fsanitize=address)
     endif ()
 else ()
-    target_compile_options(chip8options INTERFACE -Wall -Wextra -Wpedantic)
+    target_compile_options(chip8options INTERFACE -Wconversion -Wsign-conversion -Wall -Wextra -Wpedantic)
     if(ENABLE_SANITIZERS)
         target_compile_options(chip8options INTERFACE -fsanitize=address,undefined)
         target_link_options(chip8options INTERFACE -fsanitize=address,undefined)
