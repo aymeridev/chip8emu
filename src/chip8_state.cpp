@@ -26,8 +26,8 @@ constexpr std::array<std::uint8_t, 80> font = {
 };
 
 Chip8State::Chip8State() {
-    for (std::size_t y = 0; y < screen_height; ++y) {
-        for (std::size_t x = 0; x < screen_width; ++x) {
+    for (std::uint8_t y = 0; y < screen_height; ++y) {
+        for (std::uint8_t x = 0; x < screen_width; ++x) {
             screen[y][x] = get_pixel(x, y);
         }
     }
@@ -56,13 +56,13 @@ void Chip8State::reset() {
     register_listening_for_key = std::nullopt;
 
     stack.fill(0);
-    std::ranges::copy(font, memory.begin() + 0x50);
+    std::ranges::copy(font, memory.begin() + font_start);
     sp = 0;
 }
 
 
 
-bool Chip8State::load_rom(std::span<const uint8_t> rom_data) {
+bool Chip8State::load_rom(std::span<const std::uint8_t> rom_data) {
     reset();
     if (rom_data.size() > memory_size - memory_data_start) {
         return false;
@@ -73,7 +73,7 @@ bool Chip8State::load_rom(std::span<const uint8_t> rom_data) {
 }
 
 Chip8Error Chip8State::cycle() {
-    if (pc >= 4094) return Chip8Error::PcOutOfBounds;
+    if (pc >= memory_size) return Chip8Error::PcOutOfBounds;
 
     // see Fx0A : stop execution until the target key is pressed
     if (register_listening_for_key.has_value()) return Chip8Error::None;
@@ -83,9 +83,9 @@ Chip8Error Chip8State::cycle() {
 }
 
 void Chip8State::update_key(const std::uint8_t index, const bool enabled) {
-    keys[index] = enabled;
+    keys[index & 0x0FFF] = enabled;
     if (register_listening_for_key.has_value() && enabled) {
-        v[register_listening_for_key.value()] = index;
+        v[register_listening_for_key.value()] = index & 0x0FFF;
         register_listening_for_key = std::nullopt;
     }
 }
@@ -163,7 +163,7 @@ Chip8Error Chip8State::decode_and_execute(uint16_t instruction) {
             pc = (nnn + v[0]) & 0x0FFF;
             break;
         case 0xC:
-            v[x] = xorshift32() & nn;
+            v[x] = static_cast<uint8_t>(xorshift32()) & nn;
             break;
         case 0xD: { // display
 
@@ -172,7 +172,7 @@ Chip8Error Chip8State::decode_and_execute(uint16_t instruction) {
             const int cy = v[y] % screen_height;
             v[0xF] = 0;
             for (int mem_y = 0; mem_y < n; ++mem_y) {
-                const std::uint8_t row = memory[static_cast<uint16_t>(i_reg + mem_y)];
+                const std::uint8_t row = memory[(i_reg + mem_y) & 0x0FFF];
 
                 for (int sc_x = 0; sc_x < 8; ++sc_x) {
                     const int dx = cx + sc_x;
@@ -226,11 +226,11 @@ Chip8Error Chip8State::decode_and_execute(uint16_t instruction) {
                     sound_timer = v[x];
                     break;
                 case 0x29: // hex vX
-                    i_reg = 0x50 + (v[x] % 16) * 5;
+                    i_reg = font_start + (v[x] % 16) * 5;
                     break;
                 case 0x33: // bcd
-                    if (i_reg < memory_size    ) memory[i_reg] = static_cast<uint8_t>(v[x] / 100);
-                    if (i_reg < memory_size - 1) memory[i_reg + 1] = static_cast<uint8_t>(v[x] / 10 % 10);
+                    if (i_reg < memory_size    ) memory[i_reg] = static_cast<std::uint8_t>(v[x] / 100);
+                    if (i_reg < memory_size - 1) memory[i_reg + 1] = static_cast<std::uint8_t>(v[x] / 10 % 10);
                     if (i_reg < memory_size - 2) memory[i_reg + 2] = v[x] % 10;
                     break;
                 case 0x55: // save
@@ -287,7 +287,7 @@ Chip8Error Chip8State::run_math(std::uint8_t n, std::uint8_t x, std::uint8_t y) 
         case 4: {
             // add, if overflow set vF to 1 else 0
             const std::uint16_t res = v[x] + v[y];
-            v[x] = res;
+            v[x] = static_cast<std::uint8_t>(res);
 
             v[0xF] = res > 0x00FF ? 1 : 0;
             break;
