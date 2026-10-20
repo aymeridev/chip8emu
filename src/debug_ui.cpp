@@ -58,8 +58,8 @@ namespace {
             ImGui::TableSetColumnIndex(0);
             ImGui::Text("INTERNAL");
             ImGui::PushStyleColor(ImGuiCol_TextLink, ImVec4 { 1.0f, 1.0f, 1.0f, 1.0f });
-            for (int row = 0; row < 4096; row += 16) {
-                if (row == 0x200) {
+            for (int row = 0; row < memory_size; row += 16) {
+                if (row == memory_data_start) {
                     ImGui::TableNextRow();
                     ImGui::TableSetColumnIndex(0);
                     ImGui::Dummy(ImVec2 { 0.0f, 32.0f });
@@ -178,7 +178,7 @@ namespace {
             return;
         }
 
-        for (int i = 0x200; i < 0x0FFF; i += 2) {
+        for (int i = memory_data_start; i < memory_size; i += 2) {
             const std::uint16_t instr = (chip.memory[i] << 8) | chip.memory[i + 1];
 
             if (instr == 0x0000) continue;

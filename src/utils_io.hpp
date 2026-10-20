@@ -34,12 +34,12 @@ inline bool load_rom_from_file(AppState* state, const std::string &file_path) {
     std::vector<std::uint8_t> bytes(static_cast<std::uint8_t>(size));
     file.read(reinterpret_cast<char*>(bytes.data()), size);
 
-    if (bytes.size() > state->chip8_state.memory.size() - 0x200) {
+    if (bytes.size() > state->chip8_state.memory.size() - memory_data_start) {
         std::cout << "load_rom: not enough memory";
         return false;
     }
 
-    std::ranges::copy(bytes, state->chip8_state.memory.begin() + 0x200);
+    std::ranges::copy(bytes, state->chip8_state.memory.begin() + memory_data_start);
 
     std::cout << "read " << file.gcount() << " bytes\n";
 

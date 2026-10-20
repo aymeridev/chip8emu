@@ -26,8 +26,8 @@ constexpr std::array<std::uint8_t, 80> font = {
 };
 
 Chip8State::Chip8State() {
-    for (std::size_t y = 0; y < 32; ++y) {
-        for (std::size_t x = 0; x < 64; ++x) {
+    for (std::size_t y = 0; y < screen_height; ++y) {
+        for (std::size_t x = 0; x < screen_width; ++x) {
             screen[y][x] = get_pixel(x, y);
         }
     }
@@ -43,7 +43,7 @@ void Chip8State::reset() {
     rom_loaded = false;
     memory.fill(0);
     clear_screen();
-    pc = 0x200;
+    pc = memory_data_start;
     v.fill(0);
     i_reg = 0;
 
@@ -64,10 +64,10 @@ void Chip8State::reset() {
 
 bool Chip8State::load_rom(std::span<const uint8_t> rom_data) {
     reset();
-    if (rom_data.size() > 4096 - 0x200) {
+    if (rom_data.size() > memory_size - memory_data_start) {
         return false;
     }
-    std::ranges::copy(rom_data, memory.begin() + 0x200);
+    std::ranges::copy(rom_data, memory.begin() + memory_data_start);
     rom_loaded = true;
     return true;
 }
@@ -225,19 +225,19 @@ Chip8Error Chip8State::decode_and_execute(uint16_t instruction) {
                     i_reg = 0x50 + (v[x] % 16) * 5;
                     break;
                 case 0x33: // bcd
-                    if (i_reg < 4096) memory[i_reg] = static_cast<uint8_t>(v[x] / 100);
-                    if (i_reg < 4095) memory[i_reg + 1] = static_cast<uint8_t>(v[x] / 10 % 10);
-                    if (i_reg < 4094) memory[i_reg + 2] = v[x] % 10;
+                    if (i_reg < memory_size    ) memory[i_reg] = static_cast<uint8_t>(v[x] / 100);
+                    if (i_reg < memory_size - 1) memory[i_reg + 1] = static_cast<uint8_t>(v[x] / 10 % 10);
+                    if (i_reg < memory_size - 2) memory[i_reg + 2] = v[x] % 10;
                     break;
                 case 0x55: // save
                     for (std::size_t idx = 0; idx <= x; ++idx) {
-                        if (i_reg + idx < 4096) memory[i_reg + idx] = v[idx];
+                        if (i_reg + idx < memory_size) memory[i_reg + idx] = v[idx];
                     }
                     i_reg += x + 1;
                     break;
                 case 0x65: // load
                     for (std::size_t idx = 0; idx <= x; ++idx) {
-                        if (i_reg + idx < 4096) v[idx] = memory[i_reg + idx];
+                        if (i_reg + idx < memory_size) v[idx] = memory[i_reg + idx];
                     }
                     i_reg += x + 1;
                     break;
