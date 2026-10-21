@@ -1,20 +1,27 @@
 #pragma once
 #include <string>
 #include <vector>
+#include <algorithm>
 #include <filesystem>
 #include <iostream>
 #include <fstream>
 
 #include "chip8_state.hpp"
 
-inline std::vector<std::string> list_roms_from_dir(const std::string& path) {
-    std::vector<std::string> roms;
+inline std::vector<std::filesystem::path> list_roms_from_dir(const std::string& path) {
+    std::vector<std::filesystem::path> roms;
     if (!std::filesystem::is_directory(path)) return roms;
     for (const auto& file : std::filesystem::directory_iterator(path)) {
         if (file.is_regular_file() && file.path().extension() == ".ch8") {
-            roms.emplace_back(file.path().string());
+            roms.emplace_back(file.path());
         }
     }
+
+    std::ranges::sort(roms.begin(), roms.end(),
+        [](const auto& a, const auto& b) {
+            return a.filename() < b.filename();
+        });
+
     return roms;
 }
 

@@ -149,7 +149,6 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     state->tick_timer -= (tick_now - state->last_tick) / 1000.0f;
     state->last_tick = tick_now;
 
-    state->chip8_state.screen_dirty = false;
     if (state->cycle_timer <= 0.0f) {
         for (int i = 0; i < state->cycles_per_tick; ++i) {
             if (state->chip8_state.cycle() == Chip8Error::PcOutOfBounds) state->pause = true;
@@ -174,6 +173,7 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
         }
         SDL_UpdateTexture(state->texture, nullptr, state->pixels, screen_width * sizeof(Uint32));
     }
+    state->chip8_state.screen_dirty = false;
 
     if (state->debug_ui) {
         SDL_RenderClear(state->renderer);
