@@ -190,10 +190,10 @@ Chip8Error Chip8State::decode_and_execute(uint16_t instruction) {
                     }
 
                     const bool new_pixel = (row >> (7 - sc_x)) & 1;
-                    if (new_pixel) screen[dy] ^= (std::uint64_t { 1 } << dx);
                     if (((screen[dy] >> dx) & 1) && new_pixel) {
                         v[0xF] = 1;
                     }
+                    if (new_pixel) screen[dy] ^= (std::uint64_t { 1 } << dx);
                 }
             }
 

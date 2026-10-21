@@ -24,11 +24,11 @@ TEST_CASE("Dxyn clipped at the bottom still waits for vblank") {
     for (int c = 0; c < 4; ++c) CHECK(chip.cycle() == Chip8Error::None);
 
     // the 2 visible rows (0xF0, 0x90) are drawn, the 3 others are clipped
-    CHECK(chip.screen[30][0]);
-    CHECK(chip.screen[30][3]);
-    CHECK_FALSE(chip.screen[30][4]);
-    CHECK(chip.screen[31][0]);
-    CHECK_FALSE(chip.screen[31][1]);
+    CHECK(((chip.screen[30] >> 0) & 1));
+    CHECK(((chip.screen[30] >> 3) & 1));
+    CHECK_FALSE(((chip.screen[30] >> 4) & 1));
+    CHECK(((chip.screen[31] >> 0) & 1));
+    CHECK_FALSE(((chip.screen[31] >> 1) & 1));
     CHECK(chip.v[0xF] == 0);
 
     CHECK(chip.waiting_for_vblank);
