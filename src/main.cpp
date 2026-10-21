@@ -132,7 +132,6 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
 SDL_AppResult SDL_AppIterate(void *appstate) {
     auto* state = static_cast<AppState*>(appstate);
 
-    const auto tick_now = static_cast<float>(SDL_GetTicks());
 
     // TODO: audio
     // const int minimum_audio = (8000 * sizeof(float)) / 2;
@@ -145,8 +144,11 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     //     SDL_PutAudioStreamData(state->stream, samples, sizeof (samples));
     // }
 
-    state->cycle_timer -= (tick_now - state->last_tick) / 1000.0f;
-    state->tick_timer -= (tick_now - state->last_tick) / 1000.0f;
+    const auto tick_now = static_cast<float>(SDL_GetTicks());
+    if (!state->pause) {
+        state->cycle_timer -= (tick_now - state->last_tick) / 1000.0f;
+        state->tick_timer -= (tick_now - state->last_tick) / 1000.0f;
+    }
     state->last_tick = tick_now;
 
     if (state->cycle_timer <= 0.0f) {
