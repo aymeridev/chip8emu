@@ -47,7 +47,7 @@ public:
     void tick_timers();
 
     std::array<std::uint8_t, memory_size> memory = {};
-    bool screen[screen_height][screen_width] = {};
+    std::array<std::uint64_t, screen_height> screen = {};
 
     void reset();
     bool load_rom(std::span<const std::uint8_t> rom_data);

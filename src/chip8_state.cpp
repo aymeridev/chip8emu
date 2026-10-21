@@ -28,7 +28,11 @@ constexpr std::array<std::uint8_t, 80> font = {
 Chip8State::Chip8State() {
     for (std::uint8_t y = 0; y < screen_height; ++y) {
         for (std::uint8_t x = 0; x < screen_width; ++x) {
-            screen[y][x] = get_pixel(x, y);
+            if (get_pixel(x, y)) {
+                screen[y] |= (std::uint64_t { 1 } << x);
+            } else {
+                screen[y] &= ~(std::uint64_t { 1 } << x);
+            }
         }
     }
 }
@@ -172,7 +176,7 @@ Chip8Error Chip8State::decode_and_execute(uint16_t instruction) {
             const int cx = v[x] % screen_width;
             const int cy = v[y] % screen_height;
             v[0xF] = 0;
-            for (int mem_y = 0; mem_y < n; ++mem_y) {
+            for (std::size_t mem_y = 0; mem_y < n; ++mem_y) {
                 const std::uint8_t row = memory[(i_reg + mem_y) & 0x0FFF];
 
                 for (int sc_x = 0; sc_x < 8; ++sc_x) {
@@ -186,10 +190,10 @@ Chip8Error Chip8State::decode_and_execute(uint16_t instruction) {
                     }
 
                     const bool new_pixel = (row >> (7 - sc_x)) & 1;
-                    if (screen[dy][dx] && new_pixel) {
+                    if (new_pixel) screen[dy] ^= (std::uint64_t { 1 } << dx);
+                    if (((screen[dy] >> dx) & 1) && new_pixel) {
                         v[0xF] = 1;
                     }
-                    screen[dy][dx] = screen[dy][dx] ^ new_pixel;
                 }
             }
 
@@ -262,8 +266,8 @@ Chip8Error Chip8State::decode_and_execute(uint16_t instruction) {
 
 void Chip8State::clear_screen() {
     for (auto & row_y : screen) {
-        for (bool & pixel_x : row_y) {
-            pixel_x = false;
+        for (int x = 0; x < 64; ++x) {
+            row_y &= ~(std::uint64_t { 1 } << x);
         }
     }
     screen_dirty = true;

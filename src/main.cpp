@@ -168,9 +168,10 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     SDL_SetRenderScale(state->renderer, 1.0f, 1.0f);
 
     if (state->chip8_state.screen_dirty) {
-        for (int y = 0; y < screen_height; y++) {
-            for (int x = 0; x < screen_width; ++x) {
-                state->pixels[y * screen_width + x] = state->chip8_state.screen[y][x] ?
+        for (std::size_t y = 0; y < screen_height; y++) {
+            for (std::size_t x = 0; x < screen_width; ++x) {
+                const bool pixel_on = (state->chip8_state.screen[y] >> x) & 1;
+                state->pixels[y * screen_width + x] = pixel_on ?
                 color_to_uint32(state->foreground_color) : color_to_uint32(state->background_color);
             }
         }
