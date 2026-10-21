@@ -90,6 +90,7 @@ add_executable(chip8tests
         tests/test_save_load.cpp
         tests/test_disassembler.cpp
         tests/test_display.cpp
+        tests/test_load.cpp
 )
 
 target_link_libraries(chip8tests PRIVATE
