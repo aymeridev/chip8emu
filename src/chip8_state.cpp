@@ -73,7 +73,7 @@ bool Chip8State::load_rom(std::span<const std::uint8_t> rom_data) {
 }
 
 Chip8Error Chip8State::cycle() {
-    if (pc >= memory_size) return Chip8Error::PcOutOfBounds;
+    if (pc >= memory_size - 1) return Chip8Error::PcOutOfBounds;
 
     // see Fx0A : stop execution until the target key is pressed
     if (register_listening_for_key.has_value()) return Chip8Error::None;
@@ -83,9 +83,9 @@ Chip8Error Chip8State::cycle() {
 }
 
 void Chip8State::update_key(const std::uint8_t index, const bool enabled) {
-    keys[index & 0x0FFF] = enabled;
+    keys[index] = enabled;
     if (register_listening_for_key.has_value() && enabled) {
-        v[register_listening_for_key.value()] = index & 0x0FFF;
+        v[register_listening_for_key.value()] = index;
         register_listening_for_key = std::nullopt;
     }
 }
@@ -123,8 +123,8 @@ Chip8Error Chip8State::decode_and_execute(uint16_t instruction) {
             pc = nnn;
             break;
         case 2:
-            if (sp >= 15) return Chip8Error::StackOverflow;
-            stack[sp % 16] = pc;
+            if (sp > stack.size()) return Chip8Error::StackOverflow;
+            stack[sp] = pc;
             sp++;
             pc = nnn;
             break;
@@ -266,6 +266,7 @@ void Chip8State::clear_screen() {
             pixel_x = false;
         }
     }
+    screen_dirty = true;
 }
 
 Chip8Error Chip8State::run_math(std::uint8_t n, std::uint8_t x, std::uint8_t y) {

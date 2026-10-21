@@ -2,12 +2,12 @@
 #include <cstdint>
 
 namespace detail {
-    inline static std::uint32_t state = 2463534242u;
+    inline std::uint32_t state = 2463534242u;
 }
 
 
 inline bool set_seed(std::uint32_t new_seed) {
-    if (new_seed < 0) return false;
+    if (new_seed == 0) return false;
     detail::state = new_seed;
     return true;
 }

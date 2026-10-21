@@ -20,7 +20,6 @@ inline std::vector<std::string> list_roms_from_dir(const std::string& path) {
 
 
 inline bool load_rom_from_file(AppState* state, const std::string &file_path) {
-    state->chip8_state.reset();
 
     std::ifstream file (file_path, std::ios::binary | std::ios::ate);
     if (!file) {
@@ -31,19 +30,12 @@ inline bool load_rom_from_file(AppState* state, const std::string &file_path) {
     const std::streamsize size = file.tellg();
     file.seekg(0, std::ios::beg);
 
-    std::vector<std::uint8_t> bytes(static_cast<std::uint8_t>(size));
+    std::vector<std::uint8_t> bytes(static_cast<std::size_t>(size));
     file.read(reinterpret_cast<char*>(bytes.data()), size);
 
-    if (bytes.size() > state->chip8_state.memory.size() - memory_data_start) {
-        std::cout << "load_rom: not enough memory";
-        return false;
+    if (state->chip8_state.load_rom(bytes)) {
+        state->rom_file_path = file_path;
+        return true;
     }
-
-    std::ranges::copy(bytes, state->chip8_state.memory.begin() + memory_data_start);
-
-    std::cout << "read " << file.gcount() << " bytes\n";
-
-    state->rom_file_path = file_path;
-    state->chip8_state.rom_loaded = true;
-    return true;
+    return false;
 }

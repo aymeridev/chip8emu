@@ -55,7 +55,7 @@ TEST_CASE("stack overflow") {
     };
     chip.load_rom(mem);
 
-    for (int i = 0; i < 15; ++i) CHECK(chip.cycle() == Chip8Error::None);
+    for (int i = 0; i < 16; ++i) CHECK(chip.cycle() == Chip8Error::None);
     CHECK(chip.cycle() == Chip8Error::StackOverflow);
 }
 

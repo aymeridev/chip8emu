@@ -50,7 +50,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int, char *[]) {
     }
 
     if (std::random_device rd; !set_seed(rd())) {
-        SDL_Log("Couldn't set random seed: %s", SDL_GetError());
+        SDL_Log("Couldn't set random seed");
     }
 
     state->texture = SDL_CreateTexture(state->renderer, SDL_PIXELFORMAT_ABGR32, SDL_TEXTUREACCESS_STREAMING, 64, 32);
@@ -115,6 +115,7 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
         std::cout << file_path << std::endl;
 
         if (std::filesystem::path(file_path).extension() == ".8o") {
+            std::cout << file_path << std::endl;
             if (!load_rom_from_file(state, file_path)) {
                 show_message(state, "Error while loading file");
             }
@@ -166,13 +167,15 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
 
     SDL_SetRenderScale(state->renderer, 1.0f, 1.0f);
 
-    for (int y = 0; y < screen_height; y++) {
-        for (int x = 0; x < screen_width; ++x) {
-            state->pixels[y * screen_width + x] = state->chip8_state.screen[y][x] ?
-            color_to_uint32(state->foreground_color) : color_to_uint32(state->background_color);
+    if (state->chip8_state.screen_dirty) {
+        for (int y = 0; y < screen_height; y++) {
+            for (int x = 0; x < screen_width; ++x) {
+                state->pixels[y * screen_width + x] = state->chip8_state.screen[y][x] ?
+                color_to_uint32(state->foreground_color) : color_to_uint32(state->background_color);
+            }
         }
+        SDL_UpdateTexture(state->texture, nullptr, state->pixels, screen_width * sizeof(Uint32));
     }
-    SDL_UpdateTexture(state->texture, nullptr, state->pixels, screen_width * sizeof(Uint32));
 
     if (state->debug_ui) {
         SDL_RenderClear(state->renderer);
