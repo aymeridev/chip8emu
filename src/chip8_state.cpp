@@ -127,7 +127,7 @@ Chip8Error Chip8State::decode_and_execute(uint16_t instruction) {
             pc = nnn;
             break;
         case 2:
-            if (sp > stack.size()) return Chip8Error::StackOverflow;
+            if (sp >= stack.size()) return Chip8Error::StackOverflow;
             stack[sp] = pc;
             sp++;
             pc = nnn;
