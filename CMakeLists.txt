@@ -59,6 +59,7 @@ add_library(chip8core src/chip8_state.cpp
         src/logo.hpp
 )
 target_include_directories(chip8core PUBLIC src)
+target_compile_options(chip8core PRIVATE -fno-exceptions -fno-rtti)
 
 add_library(chip8tools INTERFACE
         src/disassembler.hpp
