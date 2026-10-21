@@ -233,13 +233,19 @@ namespace {
 
         ImGui::SeparatorText("Display");
         ImGui::Text("Background Color");
-        ImGui::ColorEdit3("##background", appstate->background_color.data());
+
+        if (ImGui::ColorEdit3("##background", appstate->background_color.data())) {
+            appstate->chip8_state.screen_dirty = true;
+        }
         ImGui::Text("Foreground Color");
-        ImGui::ColorEdit3("##foreground", appstate->foreground_color.data());
+        if (ImGui::ColorEdit3("##foreground", appstate->foreground_color.data())) {
+            appstate->chip8_state.screen_dirty = true;
+        }
 
         if (ImGui::Button("Randomize colors")) {
             appstate->background_color = { random_float() * 0.5f, random_float() * 0.5f, random_float() * 0.5f };
             appstate->foreground_color = { random_float(), random_float(), random_float() };
+            appstate->chip8_state.screen_dirty = true;
         }
         ImGui::SeparatorText("Audio");
         if (ImGui::Checkbox("Enable Audio", &appstate->enable_audio)) {

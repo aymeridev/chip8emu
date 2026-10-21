@@ -28,11 +28,7 @@ constexpr std::array<std::uint8_t, 80> font = {
 Chip8State::Chip8State() {
     for (std::uint8_t y = 0; y < screen_height; ++y) {
         for (std::uint8_t x = 0; x < screen_width; ++x) {
-            if (get_pixel(x, y)) {
-                screen[y] |= (std::uint64_t { 1 } << x);
-            } else {
-                screen[y] &= ~(std::uint64_t { 1 } << x);
-            }
+            if (get_pixel(x, y)) screen[y] |= (std::uint64_t { 1 } << x);
         }
     }
 }
@@ -46,7 +42,7 @@ void Chip8State::tick_timers() {
 void Chip8State::reset() {
     rom_loaded = false;
     memory.fill(0);
-    clear_screen();
+    screen.fill(0);
     pc = memory_data_start;
     v.fill(0);
     i_reg = 0;
@@ -87,6 +83,7 @@ Chip8Error Chip8State::cycle() {
 }
 
 void Chip8State::update_key(const std::uint8_t index, const bool enabled) {
+    if (index >= 16) return;
     keys[index] = enabled;
     if (register_listening_for_key.has_value() && enabled) {
         v[register_listening_for_key.value()] = index;
@@ -116,7 +113,7 @@ Chip8Error Chip8State::decode_and_execute(uint16_t instruction) {
     switch (instruction >> 12) { // group of instruction
         case 0:
             if (instruction == 0x00E0) { // CLS
-                clear_screen();
+                screen.fill(0);
             } else if (instruction == 0x00EE) { // RET
                 if (sp == 0) return Chip8Error::StackUnderflow;
                 sp--;
@@ -264,14 +261,6 @@ Chip8Error Chip8State::decode_and_execute(uint16_t instruction) {
     return Chip8Error::None;
 }
 
-void Chip8State::clear_screen() {
-    for (auto & row_y : screen) {
-        for (int x = 0; x < 64; ++x) {
-            row_y &= ~(std::uint64_t { 1 } << x);
-        }
-    }
-    screen_dirty = true;
-}
 
 Chip8Error Chip8State::run_math(std::uint8_t n, std::uint8_t x, std::uint8_t y) {
     switch (n) {

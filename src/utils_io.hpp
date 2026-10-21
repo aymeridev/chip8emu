@@ -28,6 +28,7 @@ inline bool load_rom_from_file(AppState* state, const std::string &file_path) {
     }
 
     const std::streamsize size = file.tellg();
+    if (size < 0) return  false;
     file.seekg(0, std::ios::beg);
 
     std::vector<std::uint8_t> bytes(static_cast<std::size_t>(size));
