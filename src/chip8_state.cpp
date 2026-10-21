@@ -43,6 +43,7 @@ void Chip8State::reset() {
     rom_loaded = false;
     memory.fill(0);
     screen.fill(0);
+    screen_dirty = true;
     pc = memory_data_start;
     v.fill(0);
     i_reg = 0;
@@ -114,6 +115,7 @@ Chip8Error Chip8State::decode_and_execute(uint16_t instruction) {
         case 0:
             if (instruction == 0x00E0) { // CLS
                 screen.fill(0);
+                screen_dirty = true;
             } else if (instruction == 0x00EE) { // RET
                 if (sp == 0) return Chip8Error::StackUnderflow;
                 sp--;
@@ -173,7 +175,7 @@ Chip8Error Chip8State::decode_and_execute(uint16_t instruction) {
             const int cx = v[x] % screen_width;
             const int cy = v[y] % screen_height;
             v[0xF] = 0;
-            for (std::size_t mem_y = 0; mem_y < n; ++mem_y) {
+            for (int mem_y = 0; mem_y < n; ++mem_y) {
                 const std::uint8_t row = memory[(i_reg + mem_y) & 0x0FFF];
 
                 for (int sc_x = 0; sc_x < 8; ++sc_x) {
@@ -187,10 +189,10 @@ Chip8Error Chip8State::decode_and_execute(uint16_t instruction) {
                     }
 
                     const bool new_pixel = (row >> (7 - sc_x)) & 1;
-                    if (((screen[dy] >> dx) & 1) && new_pixel) {
+                    if (((screen[static_cast<std::size_t>(dy)] >> dx) & 1) && new_pixel) {
                         v[0xF] = 1;
                     }
-                    if (new_pixel) screen[dy] ^= (std::uint64_t { 1 } << dx);
+                    if (new_pixel) screen[static_cast<std::size_t>(dy)] ^= (std::uint64_t { 1 } << dx);
                 }
             }
 
@@ -290,7 +292,7 @@ Chip8Error Chip8State::run_math(std::uint8_t n, std::uint8_t x, std::uint8_t y) 
         case 5: {
             // subtract, if underflow set vF to 0 else 1
             const std::uint16_t res = v[x] - v[y];
-            v[x] = res;
+            v[x] = static_cast<std::uint8_t>(res);
 
             v[0xF] = res > 0x00FF ? 0 : 1;
             break;
@@ -308,7 +310,7 @@ Chip8Error Chip8State::run_math(std::uint8_t n, std::uint8_t x, std::uint8_t y) 
         case 7: {
             // set vX to the result of subtracting vX from vY, vF is set to 0 if an underflow happened, to 1 if not, even if X=F!
             const std::uint16_t res = v[y] - v[x];
-            v[x] = res;
+            v[x] = static_cast<std::uint8_t>(res);
             v[0xF] = res > 0x00FF ? 0 : 1;
             break;
         }
