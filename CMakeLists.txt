@@ -59,7 +59,6 @@ add_library(chip8core src/chip8_state.cpp
         src/logo.hpp
 )
 target_include_directories(chip8core PUBLIC src)
-target_compile_options(chip8core PRIVATE -fno-exceptions -fno-rtti)
 
 add_library(chip8tools INTERFACE
         src/disassembler.hpp
@@ -113,6 +112,8 @@ if (MSVC)
         target_compile_options(chip8options INTERFACE /fsanitize=address)
     endif ()
 else ()
+
+    target_compile_options(chip8core PRIVATE -fno-exceptions -fno-rtti)
     target_compile_options(chip8options INTERFACE -Wconversion -Wsign-conversion -Wall -Wextra -Wpedantic)
     if(ENABLE_SANITIZERS)
         target_compile_options(chip8options INTERFACE -fsanitize=address,undefined)
