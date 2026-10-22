@@ -1,6 +1,7 @@
 #include "app_state.hpp"
 #include <iostream>
 #include <string>
+#include <format>
 
 void AppState::run_frame() {
     if (!chip8_state.rom_loaded) return;
