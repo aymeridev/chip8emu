@@ -60,4 +60,6 @@ public:
     bool pause = false;
 
     std::vector<RomEntry> roms;
+
+    void run_frame();
 };

@@ -119,10 +119,14 @@ namespace {
             ImGui::SliderInt("Cycles Per Tick", &appstate->cycles_per_tick, 1, 1000);
 
             ImGui::Checkbox("Pause Execution", &appstate->pause);
-            ImGui::SameLine();
-            if (ImGui::Button(">> Next Frame")) {
+            if (ImGui::Button("Step")) {
+                appstate->run_frame();
                 appstate->pause = true;
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Next Frame")) {
                 appstate->chip8_state.cycle();
+                appstate->pause = true;
             }
             ImGui::Text("Current Rom: %s", appstate->rom_file_path.c_str());
             ImGui::Text("Program Counter: %d", appstate->chip8_state.pc);

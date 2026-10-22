@@ -70,6 +70,7 @@ add_library(chip8options INTERFACE)
 add_executable(chip8emu src/main.cpp
         src/debug_ui.cpp
         src/debug_ui.hpp
+        src/app_state.cpp
         src/app_state.hpp
         src/utils_color.hpp
 )

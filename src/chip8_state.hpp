@@ -59,7 +59,7 @@ public:
     // fetch 2 bytes from memory
     std::uint16_t fetch();
 
-    Chip8Error cycle();
+    [[nodiscard]] Chip8Error cycle();
     Chip8Error decode_and_execute(uint16_t instruction);
 
 
