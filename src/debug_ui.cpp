@@ -321,13 +321,13 @@ void DebugUI::update(AppState *appstate) {
         ImVec2(360.0f + (screen_window_width - 200.0f), screen_window_height),
         ImVec2(200.0f, size.y - screen_window_height));
     if (m_show_message) ImGui::OpenPopup("Message");
-    if (m_message != nullptr) {
+    if (!m_message.empty()) {
         const ImVec2 center = vp->GetCenter();
         ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
         if (ImGui::BeginPopupModal("Message", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-            ImGui::Text("%s", m_message);
+            ImGui::Text("%s", m_message.c_str());
             if (ImGui::Button("OK")) {
-                m_message = nullptr;
+                m_message.clear();
                 ImGui::CloseCurrentPopup();
             }
             ImGui::EndPopup();

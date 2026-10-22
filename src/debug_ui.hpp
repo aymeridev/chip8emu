@@ -2,6 +2,7 @@
 
 #include <SDL3/SDL.h>
 #include "chip8_state.hpp"
+#include <string>
 
 class AppState;
 
@@ -10,8 +11,8 @@ struct DebugUI {
     ~DebugUI();
 
     void update(AppState *appstate);
-    void show_message(const char* message);
+    void show_message(const char *message);
 private:
     bool m_show_message = false;
-    const char* m_message = nullptr;
+    std::string m_message;
 };
