@@ -125,8 +125,16 @@ namespace {
             }
             ImGui::SameLine();
             if (ImGui::Button("Next Frame")) {
-                appstate->chip8_state.cycle();
+                if (const auto err = appstate->chip8_state.cycle(); err != Chip8Error::PcOutOfBounds) {
+                    appstate->debug_ui->show_message(std::format(
+                        "Error Occured ({})",
+                        static_cast<int>(err)).data());
+                }
                 appstate->pause = true;
+            }
+            if (ImGui::Button("Reset")) {
+                load_rom_from_file(appstate, appstate->rom_file_path);
+                appstate->pause = false;
             }
             ImGui::Text("Current Rom: %s", appstate->rom_file_path.c_str());
             ImGui::Text("Program Counter: %d", appstate->chip8_state.pc);
