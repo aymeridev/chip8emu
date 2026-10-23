@@ -124,7 +124,6 @@ else ()
     endif ()
 
     if (ENABLE_COVERAGE)
-        target_compile_options(chip8core PRIVATE --coverage)
         target_compile_options(chip8options INTERFACE --coverage)
 
         target_link_options(chip8core INTERFACE --coverage)
