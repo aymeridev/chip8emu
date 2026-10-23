@@ -12,6 +12,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 option(ENABLE_SANITIZERS "enable to use ASan/UBSan" ON)
+option(ENABLE_COVERAGE "enable coverage for tests" OFF)
 
 include(FetchContent)
 
@@ -120,6 +121,14 @@ else ()
     if(ENABLE_SANITIZERS)
         target_compile_options(chip8options INTERFACE -fsanitize=address,undefined)
         target_link_options(chip8options INTERFACE -fsanitize=address,undefined)
+    endif ()
+
+    if (ENABLE_COVERAGE)
+        target_compile_options(chip8core PRIVATE --coverage)
+        target_compile_options(chip8options INTERFACE --coverage)
+
+        target_link_options(chip8core INTERFACE --coverage)
+        target_link_options(chip8options INTERFACE --coverage)
     endif ()
 endif ()
 

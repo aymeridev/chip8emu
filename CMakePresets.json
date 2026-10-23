@@ -23,6 +23,16 @@
         "CMAKE_BUILD_TYPE": "Release",
         "ENABLE_SANITIZERS": "OFF"
       }
+    },
+    {
+      "inherits": ["debug"],
+      "name": "coverage",
+      "displayName": "Coverage",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "ENABLE_SANITIZERS": "OFF",
+        "ENABLE_COVERAGE": "ON"
+      }
     }
   ],
   "buildPresets": [
@@ -33,6 +43,10 @@
     {
       "name": "release",
       "configurePreset": "release"
+    },
+    {
+      "name": "coverage",
+      "configurePreset": "coverage"
     }
   ],
   "testPresets": [
@@ -46,6 +60,11 @@
         "noTestsAction": "error",
         "stopOnFailure": true
       }
+    },
+    {
+      "inherits": ["debug"],
+      "name": "coverage",
+      "configurePreset": "coverage"
     }
   ],
   "workflowPresets": [
@@ -63,6 +82,24 @@
         {
           "type": "test",
           "name": "debug"
+        }
+      ]
+    },
+    {
+      "name": "coverage",
+      "displayName": "Coverage",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "coverage"
+        },
+        {
+          "type": "build",
+          "name": "coverage"
+        },
+        {
+          "type": "test",
+          "name": "coverage"
         }
       ]
     },
