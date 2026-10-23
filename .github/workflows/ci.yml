@@ -50,7 +50,7 @@ jobs:
         run: pipx install gcovr
 
       - name: Run Workflow
-        run: cmake --workflow --preset workflow
+        run: cmake --workflow --preset coverage
 
       - name: Run gcovr
         run: gcovr --root . --filter src/ --cobertura coverage.xml --print-summary build/coverage
