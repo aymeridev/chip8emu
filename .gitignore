@@ -1,2 +1,3 @@
 build
 CMakeUserPresets.json
+stm32/nucleo_f446re/.mxproject
