@@ -107,7 +107,7 @@ std::uint16_t Chip8State::fetch() {
 Chip8Error Chip8State::decode_and_execute(uint16_t instruction) {
 
     const std::uint16_t nnn = instruction & 0x0FFF;
-    const std::uint8_t nn = instruction & 0x00FF;
+    const auto nn = static_cast<std::uint8_t>(instruction & 0x00FF);
     const std::uint8_t n = instruction & 0x000F;
     const std::uint8_t x = (instruction >> 8) & 0x0F;
     const std::uint8_t y = (instruction >> 4) & 0x0F;
@@ -231,7 +231,7 @@ Chip8Error Chip8State::decode_and_execute(uint16_t instruction) {
                     sound_timer = v[x];
                     break;
                 case 0x29: // hex vX
-                    i_reg = font_start + (v[x] % 16) * 5;
+                    i_reg = static_cast<std::uint16_t>(font_start + (v[x] % 16) * 5);
                     break;
                 case 0x33: // bcd
                     if (i_reg < memory_size    ) memory[i_reg] = static_cast<std::uint8_t>(v[x] / 100);
@@ -242,13 +242,13 @@ Chip8Error Chip8State::decode_and_execute(uint16_t instruction) {
                     for (std::size_t idx = 0; idx <= x; ++idx) {
                         if (i_reg + idx < memory_size) memory[i_reg + idx] = v[idx];
                     }
-                    i_reg += x + 1;
+                    i_reg += static_cast<std::uint16_t>(x + 1);
                     break;
                 case 0x65: // load
                     for (std::size_t idx = 0; idx <= x; ++idx) {
                         if (i_reg + idx < memory_size) v[idx] = memory[i_reg + idx];
                     }
-                    i_reg += x + 1;
+                    i_reg += static_cast<std::uint16_t>(x + 1);
                     break;
 
                 case 0x1E:
