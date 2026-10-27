@@ -104,7 +104,7 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  app_main();
+  app_main(&huart2);
   while (1)
   {
     HAL_GetTick();
