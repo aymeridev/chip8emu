@@ -21,6 +21,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "app.h"
 
 /* USER CODE END Includes */
 
@@ -99,11 +100,10 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  app_main();
   while (1)
   {
-    HAL_GPIO_TogglePin(LED2_GPIO_PORT, LED2_PIN);
-    HAL_Delay(100);
-
+    HAL_GetTick();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
