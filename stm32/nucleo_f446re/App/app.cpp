@@ -9,19 +9,31 @@ namespace {
 }
 
 constexpr std::size_t row_size = 66;
-constexpr std::uint32_t delta_time = 1000 / 60;
+constexpr std::uint32_t fps = 60;
 
 void app_main(UART_HandleTypeDef* huart2) {
     state.load_rom(rom);
     std::array<std::uint8_t, row_size> screen_buffer = {};
-    auto last_frame = HAL_GetTick();
+    auto start = HAL_GetTick();
+    std::uint64_t next_frame = 0;
+    std::uint64_t n = 0;
+    bool error = false;
     while (true) {
-        if (last_frame - HAL_GetTick() > delta_time) {
+        if (error) {
+            HAL_GPIO_TogglePin(LED2_GPIO_PORT, LED2_PIN);
+            HAL_Delay(100);
+            continue;
+        }
+        if (HAL_GetTick() - start >= next_frame) {
             for (int i = 0; i < 100; ++i) {
-                (void) state.cycle();
+                if (state.cycle() != Chip8Error::None) {
+                    error = true;
+                    break;
+                }
             }
             state.tick_timers();
-            last_frame = HAL_GetTick();
+            n++;
+            next_frame = n * 1000 / fps;
         }
         if (state.screen_dirty) {
             HAL_GPIO_TogglePin(LED2_GPIO_PORT, LED2_PIN);
