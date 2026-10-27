@@ -32,9 +32,7 @@ message("Build type: " ${CMAKE_BUILD_TYPE})
 enable_language(C ASM)
 
 # Create an executable object type
-add_executable(${CMAKE_PROJECT_NAME}
-        App/ssd1306.cpp
-        App/ssd1306.hpp)
+add_executable(${CMAKE_PROJECT_NAME})
 
 # Add STM32CubeMX generated sources
 add_subdirectory(cmake/stm32cubemx)
@@ -50,6 +48,8 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     App/app.h
     App/app.cpp
     App/roms.hpp
+    App/ssd1306.cpp
+    App/ssd1306.hpp
 )
 
 # Add include paths
