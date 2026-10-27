@@ -21,6 +21,11 @@ add_library(chip8core src/chip8_state.cpp
         src/logo.hpp
 )
 
+target_include_directories(chip8core PUBLIC src)
+
+add_library(chip8options INTERFACE)
+
+
 if (CHIP8_BUILD_STM32)
     add_subdirectory(stm32/nucleo_f446re)
 else ()
@@ -64,14 +69,12 @@ else ()
     )
     target_link_libraries(imgui PUBLIC SDL3::SDL3)
 
-    target_include_directories(chip8core PUBLIC src)
 
     add_library(chip8tools INTERFACE
             src/disassembler.hpp
     )
 
     target_include_directories(chip8tools INTERFACE src)
-    add_library(chip8options INTERFACE)
 
     add_executable(chip8emu src/main.cpp
             src/debug_ui.cpp
@@ -114,29 +117,7 @@ else ()
         message(STATUS "enabling sanitizers")
     endif ()
 
-    if (MSVC)
-        target_compile_options(chip8options INTERFACE /W4) # no UBSan with MSVC
-        if(ENABLE_SANITIZERS)
-            target_compile_options(chip8options INTERFACE /fsanitize=address)
-        endif ()
-    else ()
 
-        target_compile_options(chip8core PRIVATE -fno-exceptions -fno-rtti)
-        target_compile_options(chip8options INTERFACE -Wconversion -Wsign-conversion -Wall -Wextra -Wpedantic)
-        if(ENABLE_SANITIZERS)
-            target_compile_options(chip8options INTERFACE -fsanitize=address,undefined)
-            target_link_options(chip8options INTERFACE -fsanitize=address,undefined)
-        endif ()
-
-        if (ENABLE_COVERAGE)
-            target_compile_options(chip8core PRIVATE --coverage)
-            target_compile_options(chip8tests PRIVATE --coverage)
-
-            target_link_options(chip8core INTERFACE --coverage)
-        endif ()
-    endif ()
-
-    target_link_libraries(chip8core PRIVATE chip8options)
     target_link_libraries(chip8tests PRIVATE chip8options)
     target_link_libraries(chip8emu PRIVATE chip8options)
 
@@ -147,4 +128,31 @@ else ()
             "$<TARGET_FILE_DIR:chip8emu>/roms"
             COMMENT "chip8emu: copying roms into build folder"
     )
+
+    if (NOT MSVC)
+        if (ENABLE_COVERAGE)
+            target_compile_options(chip8core PRIVATE --coverage)
+            target_compile_options(chip8tests PRIVATE --coverage)
+
+            target_link_options(chip8core INTERFACE --coverage)
+        endif ()
+    endif ()
+
+endif ()
+
+target_link_libraries(chip8core PRIVATE chip8options)
+
+if (MSVC)
+    target_compile_options(chip8options INTERFACE /W4) # no UBSan with MSVC
+    if(NOT CHIP8_BUILD_STM32 AND ENABLE_SANITIZERS)
+        target_compile_options(chip8options INTERFACE /fsanitize=address)
+    endif ()
+else ()
+
+    target_compile_options(chip8core PRIVATE -fno-exceptions -fno-rtti)
+    target_compile_options(chip8options INTERFACE -Wconversion -Wsign-conversion -Wall -Wextra -Wpedantic)
+    if(NOT CHIP8_BUILD_STM32 AND ENABLE_SANITIZERS)
+        target_compile_options(chip8options INTERFACE -fsanitize=address,undefined)
+        target_link_options(chip8options INTERFACE -fsanitize=address,undefined)
+    endif ()
 endif ()
