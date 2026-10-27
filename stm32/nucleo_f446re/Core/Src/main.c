@@ -108,7 +108,7 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  app_main(&huart2);
+  app_main(&huart2, &hi2c1);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

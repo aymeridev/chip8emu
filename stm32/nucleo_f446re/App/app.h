@@ -7,7 +7,7 @@
 extern "C" {
 #endif
 
-void app_main(UART_HandleTypeDef* huart2);
+    void app_main(UART_HandleTypeDef* huart2, I2C_HandleTypeDef* hi2c1);
 
 #ifdef __cplusplus
 }

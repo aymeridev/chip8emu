@@ -2,6 +2,7 @@
 #include "chip8_state.hpp"
 #include "roms.hpp"
 #include "main.h"
+#include "ssd1306.hpp"
 #include <array>
 
 namespace {
@@ -11,13 +12,27 @@ namespace {
 constexpr std::size_t row_size = 66;
 constexpr std::uint32_t fps = 60;
 
-void app_main(UART_HandleTypeDef* huart2) {
+void app_main(UART_HandleTypeDef* huart2, I2C_HandleTypeDef* hi2c1) {
     state.load_rom(rom);
     std::array<std::uint8_t, row_size> screen_buffer = {};
     auto start = HAL_GetTick();
     std::uint64_t next_frame = 0;
     std::uint64_t n = 0;
     bool error = false;
+
+    if (HAL_I2C_IsDeviceReady(hi2c1, 0x3C << 1, 3, 100) == HAL_OK) {
+        if (init_ssd1306(*hi2c1)) {
+        std::array<std::uint8_t, 1024> screen = {};
+        screen.fill(0x80);
+        HAL_I2C_Mem_Write(hi2c1, 0x3C << 1, 0x40,
+            I2C_MEMADD_SIZE_8BIT, screen.data(), screen.size(), HAL_MAX_DELAY);
+        } else {
+            error = true;
+        }
+    } else {
+        error = true;
+    }
+
     while (true) {
         if (error) {
             HAL_GPIO_TogglePin(LED2_GPIO_PORT, LED2_PIN);
