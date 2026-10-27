@@ -4,7 +4,7 @@
 [![codecov](https://codecov.io/gh/aymeridev/chip8emu/graph/badge.svg?token=72HVBG11O2)](https://codecov.io/gh/aymeridev/chip8emu)
 [![License](https://img.shields.io/badge/License-MIT-blue)](https://github.com/aymeridev/chip8emu/blob/main/LICENSE)
 
-![video](https://aymeri.dev/projects/chip8emu_demo.gif)
+![video](https://projects.aymeri.dev/chip8emu_demo.gif)
 
 > Emulator running with the SDL3 frontend using [Timo Triisa's Snake](https://github.com/JohnEarnest/chip8Archive/blob/master/src/snake) game.
 
