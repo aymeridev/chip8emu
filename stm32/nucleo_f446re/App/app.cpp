@@ -13,7 +13,9 @@ namespace {
 constexpr std::size_t row_size = 66;
 constexpr std::uint32_t fps = 60;
 
-void screen_to_array(std::array<std::uint64_t, screen_height> screen, std::array<std::uint8_t, 1024>& out) {
+
+void screen_to_array(const std::array<std::uint64_t, screen_height>& screen, std::array<std::uint8_t, 1024>& out) {
+    out.fill(0x00);
     for (int page = 0; page < 8; ++page) {
         for (int c = 0; c < 128; ++c) {
             for (int b = 0; b < 8; ++b) {
@@ -32,7 +34,7 @@ void app_main(UART_HandleTypeDef* huart2, I2C_HandleTypeDef* hi2c1) {
     std::uint64_t n = 0;
     bool error = false;
 
-    if (HAL_I2C_IsDeviceReady(hi2c1, 0x3C << 1, 3, 100) == HAL_OK) {
+    if (HAL_I2C_IsDeviceReady(hi2c1, oled_address, 3, 100) == HAL_OK) {
         if (init_ssd1306(*hi2c1)) {
         } else {
             error = true;
@@ -59,11 +61,11 @@ void app_main(UART_HandleTypeDef* huart2, I2C_HandleTypeDef* hi2c1) {
             next_frame = n * 1000 / fps;
         }
         if (state.screen_dirty) {
-            HAL_GPIO_TogglePin(LED2_GPIO_PORT, LED2_PIN);
-            HAL_UART_Transmit(huart2, reinterpret_cast<const uint8_t *>("\x1b[H"), 3, HAL_MAX_DELAY);
             screen_to_array(state.screen, screen_buffer);
-            HAL_I2C_Mem_Write(hi2c1, 0x3C << 1, 0x40,
-                I2C_MEMADD_SIZE_8BIT, screen_buffer.data(), screen_buffer.size(), HAL_MAX_DELAY);
+            if (HAL_I2C_Mem_Write(hi2c1, oled_address, 0x40,
+                I2C_MEMADD_SIZE_8BIT, screen_buffer.data(), screen_buffer.size(), HAL_MAX_DELAY) != HAL_OK) {
+                error = true;
+            }
             state.screen_dirty = false;
         }
     }

@@ -25,6 +25,6 @@ bool init_ssd1306(I2C_HandleTypeDef &hi2c1) {
     });
 
 
-    return HAL_I2C_Mem_Write(&hi2c1, 0x3C << 1, 0x00,
+    return HAL_I2C_Mem_Write(&hi2c1, oled_address, 0x00,
         I2C_MEMADD_SIZE_8BIT, screen.data(), screen.size(), HAL_MAX_DELAY) == HAL_OK;
 }
