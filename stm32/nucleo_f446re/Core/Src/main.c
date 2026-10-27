@@ -103,15 +103,8 @@ int main(void)
   BSP_PB_Init(BUTTON_USER, BUTTON_MODE_EXTI);
 
   /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
+  /* USER CODE BEGIN 3 */
   app_main(&huart2);
-  while (1)
-  {
-    HAL_GetTick();
-    /* USER CODE END WHILE */
-
-    /* USER CODE BEGIN 3 */
-  }
   /* USER CODE END 3 */
 }
 
