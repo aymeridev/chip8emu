@@ -38,6 +38,6 @@ constexpr std::array<uint8_t, 256> boot_logo = {
 }
 
 inline bool get_pixel(std::uint8_t x, std::uint8_t y) {
-  const auto byte = detail::boot_logo[static_cast<std::uint8_t>(y * 8 + x / 8)];
+  const auto byte = detail::boot_logo[static_cast<std::size_t>(y * 8 + x / 8)];
   return (byte >> (7 - x % 8 )) & 1;
 }
