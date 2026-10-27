@@ -103,8 +103,10 @@ int main(void)
   BSP_PB_Init(BUTTON_USER, BUTTON_MODE_EXTI);
 
   /* Infinite loop */
-  /* USER CODE BEGIN 3 */
+  /* USER CODE BEGIN WHILE */
   app_main(&huart2);
+  /* USER CODE END WHILE */
+  /* USER CODE BEGIN 3 */
   /* USER CODE END 3 */
 }
 
