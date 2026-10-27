@@ -33,6 +33,18 @@
         "ENABLE_SANITIZERS": "OFF",
         "ENABLE_COVERAGE": "ON"
       }
+    },
+    {
+      "inherits": ["default"],
+      "name": "stm32",
+      "displayName": "STM32",
+      "generator": "Ninja",
+      "toolchainFile":"${sourceDir}/stm32/nucleo_f446re/cmake/gcc-arm-none-eabi.cmake",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "ENABLE_SANITIZERS": "OFF",
+        "CHIP8_BUILD_STM32": "ON"
+      }
     }
   ],
   "buildPresets": [
@@ -47,6 +59,10 @@
     {
       "name": "coverage",
       "configurePreset": "coverage"
+    },
+    {
+      "name": "stm32",
+      "configurePreset": "stm32"
     }
   ],
   "testPresets": [
