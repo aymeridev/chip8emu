@@ -41,6 +41,32 @@ void screen_to_array(const std::array<std::uint64_t, screen_height>& screen, std
     }
 }
 
+void i2c_bus_recover() {
+    HAL_GPIO_WritePin(OLED_SCL_GPIO_Port, OLED_SCL_Pin | OLED_SDA_Pin, GPIO_PIN_SET);
+    GPIO_InitTypeDef init = {};
+    init.Pin = OLED_SCL_Pin | OLED_SDA_Pin;
+    init.Mode = GPIO_MODE_OUTPUT_OD;
+    init.Pull = GPIO_NOPULL;
+    init.Speed = GPIO_SPEED_FREQ_LOW;
+    HAL_GPIO_Init(OLED_SCL_GPIO_Port, &init);
+    for (int i = 0; i < 9; ++i) {
+        if (HAL_GPIO_ReadPin(OLED_SDA_GPIO_Port, OLED_SDA_Pin) == GPIO_PIN_SET) break;
+        HAL_GPIO_WritePin(OLED_SCL_GPIO_Port, OLED_SCL_Pin, GPIO_PIN_RESET);
+        HAL_Delay(1);
+        HAL_GPIO_WritePin(OLED_SCL_GPIO_Port, OLED_SCL_Pin, GPIO_PIN_SET);
+        HAL_Delay(1);
+
+    }
+
+    HAL_GPIO_WritePin(OLED_SCL_GPIO_Port, OLED_SCL_Pin, GPIO_PIN_RESET);
+    HAL_Delay(1);
+    HAL_GPIO_WritePin(OLED_SDA_GPIO_Port, OLED_SDA_Pin, GPIO_PIN_RESET);
+    HAL_Delay(1);
+    HAL_GPIO_WritePin(OLED_SCL_GPIO_Port, OLED_SCL_Pin, GPIO_PIN_SET);
+    HAL_Delay(1);
+    HAL_GPIO_WritePin(OLED_SDA_GPIO_Port, OLED_SDA_Pin, GPIO_PIN_SET);
+}
+
 void app_main(UART_HandleTypeDef* huart2, I2C_HandleTypeDef* hi2c1) {
     state.load_rom(rom);
     auto start = HAL_GetTick();
@@ -48,9 +74,7 @@ void app_main(UART_HandleTypeDef* huart2, I2C_HandleTypeDef* hi2c1) {
     std::uint64_t n = 0;
     bool error = false;
 
-    if (HAL_I2C_IsDeviceReady(hi2c1, oled_address, 3, 100) == HAL_OK) {
-        if (!ssd1306_init(*hi2c1)) error = true;
-    } else {
+    if (HAL_I2C_IsDeviceReady(hi2c1, oled_address, 3, 100) != HAL_OK || !ssd1306_init(*hi2c1)) {
         error = true;
     }
 

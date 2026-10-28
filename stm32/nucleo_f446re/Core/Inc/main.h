@@ -77,6 +77,10 @@ void Error_Handler(void);
 #define BTN_DOWN_GPIO_Port GPIOB
 #define BTN_RIGHT_Pin GPIO_PIN_5
 #define BTN_RIGHT_GPIO_Port GPIOB
+#define OLED_SCL_Pin GPIO_PIN_8
+#define OLED_SCL_GPIO_Port GPIOB
+#define OLED_SDA_Pin GPIO_PIN_9
+#define OLED_SDA_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 
