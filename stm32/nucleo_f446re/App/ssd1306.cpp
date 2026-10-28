@@ -3,7 +3,7 @@
 
 #include "ssd1306.hpp"
 
-bool init_ssd1306(I2C_HandleTypeDef &hi2c1) {
+bool ssd1306_init(I2C_HandleTypeDef &hi2c1) {
     auto screen = std::to_array<std::uint8_t>({
         0xAE, // turn off display
         0xD5, 0x80,
@@ -27,4 +27,15 @@ bool init_ssd1306(I2C_HandleTypeDef &hi2c1) {
 
     return HAL_I2C_Mem_Write(&hi2c1, oled_address, 0x00,
         I2C_MEMADD_SIZE_8BIT, screen.data(), screen.size(), HAL_MAX_DELAY) == HAL_OK;
+}
+
+
+bool ssd1306_draw(I2C_HandleTypeDef &hi2c1) {
+    auto screen = std::to_array<std::uint8_t>({
+    0x21, 0x00, 0x7F, // reset column
+    0x22, 0x00, 0x07 // reset page
+});
+    return HAL_I2C_Mem_Write(&hi2c1, oled_address, 0x00,
+        I2C_MEMADD_SIZE_8BIT, screen.data(), screen.size(), HAL_MAX_DELAY) == HAL_OK;
+
 }

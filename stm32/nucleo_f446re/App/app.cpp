@@ -49,10 +49,7 @@ void app_main(UART_HandleTypeDef* huart2, I2C_HandleTypeDef* hi2c1) {
     bool error = false;
 
     if (HAL_I2C_IsDeviceReady(hi2c1, oled_address, 3, 100) == HAL_OK) {
-        if (init_ssd1306(*hi2c1)) {
-        } else {
-            error = true;
-        }
+        if (!ssd1306_init(*hi2c1)) error = true;
     } else {
         error = true;
     }
@@ -82,10 +79,13 @@ void app_main(UART_HandleTypeDef* huart2, I2C_HandleTypeDef* hi2c1) {
             next_frame = n * 1000 / fps;
         }
         if (state.screen_dirty) {
-            screen_to_array(state.screen, screen_buffer);
-            if (HAL_I2C_Mem_Write(hi2c1, oled_address, 0x40,
-                I2C_MEMADD_SIZE_8BIT, screen_buffer.data(), screen_buffer.size(), HAL_MAX_DELAY) != HAL_OK) {
-                error = true;
+            if (!ssd1306_draw(*hi2c1)) error = true;
+            else {
+                screen_to_array(state.screen, screen_buffer);
+                if (HAL_I2C_Mem_Write(hi2c1, oled_address, 0x40,
+                    I2C_MEMADD_SIZE_8BIT, screen_buffer.data(), screen_buffer.size(), HAL_MAX_DELAY) != HAL_OK) {
+                    error = true;
+                }
             }
             state.screen_dirty = false;
         }
