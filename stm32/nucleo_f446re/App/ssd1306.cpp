@@ -30,12 +30,17 @@ bool ssd1306_init(I2C_HandleTypeDef &hi2c1) {
 }
 
 
-bool ssd1306_draw(I2C_HandleTypeDef &hi2c1) {
+bool ssd1306_draw(I2C_HandleTypeDef &hi2c1, std::array<std::uint8_t, 1024> &buffer) {
     auto screen = std::to_array<std::uint8_t>({
     0x21, 0x00, 0x7F, // reset column
     0x22, 0x00, 0x07 // reset page
 });
-    return HAL_I2C_Mem_Write(&hi2c1, oled_address, 0x00,
-        I2C_MEMADD_SIZE_8BIT, screen.data(), screen.size(), HAL_MAX_DELAY) == HAL_OK;
+    if (HAL_I2C_Mem_Write(&hi2c1, oled_address, 0x00,
+        I2C_MEMADD_SIZE_8BIT, screen.data(), screen.size(), HAL_MAX_DELAY) != HAL_OK) return false;
 
+    if (HAL_I2C_Mem_Write(&hi2c1, oled_address, 0x40,
+                    I2C_MEMADD_SIZE_8BIT, buffer.data(), buffer.size(), HAL_MAX_DELAY) != HAL_OK) {
+        return false;
+                    }
+    return true;
 }
