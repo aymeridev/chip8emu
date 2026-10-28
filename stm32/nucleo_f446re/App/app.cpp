@@ -63,16 +63,14 @@ void app_main(UART_HandleTypeDef* huart2, I2C_HandleTypeDef* hi2c1) {
             HAL_Delay(100);
             continue;
         }
-        for (const auto & key: keysMap) {
-        if (HAL_GPIO_ReadPin(key.gpio, key.pin) == GPIO_PIN_RESET) {
-            HAL_GPIO_TogglePin(LED2_GPIO_PORT, LED2_PIN);
-            state.update_key(key.key, true);
-        } else {
-            state.update_key(key.key, false);
-        }
-
-        }
         if (HAL_GetTick() - start >= next_frame) {
+            for (const auto &[gpio, pin, key]: keysMap) {
+                if (HAL_GPIO_ReadPin(gpio, pin) == GPIO_PIN_RESET) {
+                    if (!state.keys[key]) state.update_key(key, true);
+                } else if (state.keys[key]) {
+                    state.update_key(key, false);
+                }
+            }
             for (int i = 0; i < 100; ++i) {
                 if (state.cycle() != Chip8Error::None) {
                     error = true;
