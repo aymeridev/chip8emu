@@ -9,7 +9,7 @@
 > Emulator running with the SDL3 frontend using [Timo Triisa's Snake](https://github.com/JohnEarnest/chip8Archive/blob/master/src/snake) game.
 
 
-A CHIP-8 Emulator made with C++20 (and CMake >= 3.31), with an SDL3 Frontend, and a complete set of Dear ImGui tools to inspect and debug ROMs.
+A CHIP-8 Emulator made with C++20 (and CMake >= 3.31) with no dynamic allocations for the core, an [STM32](#stm32) port and for the desktop an SDL3 Frontend with a complete set of Dear ImGui tools to inspect and debug ROMs.
 
 The emulator currently passes tests 1 to 5 from [Timendus CHIP-8 Test Suite](https://github.com/Timendus/chip8-test-suite).
 
@@ -27,17 +27,20 @@ You can toggle on/off the Dear ImGui debugger using the `F1` key.
 
 ## Architecture
 
-The project uses 3 targets:
+The project uses 4 targets:
 
-- `chip8core`: The core of the emulator. No **dynamic allocation**, no exceptions and no RTTI (to be portable for [STM32](#roadmap)).
+- `chip8core`: The core of the emulator. No **dynamic allocation**, no exceptions and no RTTI (to be portable for [STM32](#stm32)).
 - `chip8tools`: The disassembler.
 - `chip8emu`: Includes the SDL3 frontend and the ImGui tools (disassembler, memory viewer, ...)
+- `nucleo_f446re`: the firmware for the NUCLEO-F446RE board, which links `chip8core`
 
 ## Roadmap
 
-- Audio support
-- STM32 support
+- Audio support (desktop)
 - XO-CHIP support
+- STM32: Use DMA for screen rendering
+- STM32: Menu to select ROMs at runtime
+
 
 ## Install
 
@@ -55,6 +58,64 @@ cd chip8emu
 cmake --workflow --preset debug
 ./build/debug/chip8emu
 ```
+
+## STM32
+
+https://github.com/user-attachments/assets/2936e60b-3037-4e15-b26c-808adb45396b
+
+The emulator is also available on STM32!
+
+In this version, some changes have been made:
+
+- Instead of loading roms via filesystem, the ROM is in the flash. (through a `constexpr std::array`)
+- The screen (64x32) is converted and sent to the SSD1306 (via x2 zoom) only when `screen_dirty` is true.
+- An I2C bus recovery runs at boot up if a reset interrupted a transaction.
+
+### Hardware
+
+To make the project you need:
+
+- **ST NUCLEO-F446RE**
+- SSD1306 0.96" OLED Screen (128x64)
+- 4 push buttons
+- Murata PKM22EPP-40 piezo sounder (driven via an optional 6.8 kΩ series resistor)
+
+For the screen, the program uses the address 0x3C. Since the CHIP-8 screen is 64x32, the display is scaled by 2 for the OLED screen.
+
+For the wiring:
+
+#### Screen/Buzzer
+
+- `OLED_SCL`: pin PB8 (header D15)
+- `OLED_SDA`: pin PB9 (header D14)
+- `OLED_VDD`/`GND`: 3V3/GND (header CN6)
+- `BUZZER`: PC7 (header D9)
+
+#### Inputs
+
+> By default the keys are mapped to Snake. If you want to change them to a different game, you can edit `keysMap` in `stm32/nucleo_f446re/App/app.cpp`
+
+- `BTN_UP`: pin PA10 (header D2) **(key code 5)**
+- `BTN_RIGHT`: pin PB5 (header D4) **(key code 9)**
+- `BTN_DOWN`: pin PB4 (header D5) **(key code 8)**
+- `BTN_LEFT`: pin PB10 (header D6) **(key code 7)**
+
+
+### Build/Flash
+
+Prerequisites: arm-none-eabi-gcc, Ninja, OpenOCD
+
+On macOS using Homebrew, you can run `brew install --cask gcc-arm-embedded` and `brew install ninja open-ocd` to install the toolchain.
+
+```bash
+cmake --preset stm32
+cmake --build --preset stm32
+openocd -f board/st_nucleo_f4.cfg -c "program build/stm32/stm32/nucleo_f446re/nucleo_f446re.elf verify reset exit"
+```
+
+### Limits
+
+Currently, screen is sent via blocking I2C, which means games that redraw at each frame will run a little bit below 60 Hz. (see Roadmap)
 
 ## Tests
 
@@ -101,5 +162,7 @@ Thanks to:
 - Cowgod's CHIP-8 Technical Reference (http://devernay.free.fr/hacks/chip8/C8TECH10.HTM)
 - Tetris ROM by Fran Dachille (https://www.hpcalc.org/details/858)
 - Snake ROM by Timo Triisa (https://github.com/JohnEarnest/chip8Archive/tree/master/src/snake)
+- STM32F446RE Documentation (https://www.st.com/en/evaluation-tools/nucleo-f446re.html)
+- SSD1306 Data Sheet (https://cdn-shop.adafruit.com/datasheets/SSD1306.pdf)
 
 Note: ROMs included in the repository keep their own licenses. Please check their corresponding license. The Timendus Test Suite uses the GPL-3.0 license.
