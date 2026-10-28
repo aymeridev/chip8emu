@@ -67,7 +67,7 @@ void i2c_bus_recover() {
     HAL_GPIO_WritePin(OLED_SDA_GPIO_Port, OLED_SDA_Pin, GPIO_PIN_SET);
 }
 
-void app_main(UART_HandleTypeDef* huart2, I2C_HandleTypeDef* hi2c1) {
+void app_main(UART_HandleTypeDef* huart2, I2C_HandleTypeDef* hi2c1, TIM_HandleTypeDef* htim3) {
     state.load_rom(rom);
     auto start = HAL_GetTick();
     std::uint64_t next_frame = 0;
@@ -77,6 +77,8 @@ void app_main(UART_HandleTypeDef* huart2, I2C_HandleTypeDef* hi2c1) {
     if (HAL_I2C_IsDeviceReady(hi2c1, oled_address, 3, 100) != HAL_OK || !ssd1306_init(*hi2c1)) {
         error = true;
     }
+
+    bool sound_timer_active = false;
 
     while (true) {
         if (error) {
@@ -98,6 +100,15 @@ void app_main(UART_HandleTypeDef* huart2, I2C_HandleTypeDef* hi2c1) {
                     break;
                 }
             }
+
+            if (!sound_timer_active && state.sound_timer > 0) {
+                HAL_TIM_PWM_Start(htim3, TIM_CHANNEL_2);
+                sound_timer_active = true;
+            } else if (sound_timer_active && state.sound_timer == 0) {
+                HAL_TIM_PWM_Stop(htim3, TIM_CHANNEL_2);
+                sound_timer_active = false;
+            }
+
             state.tick_timers();
             n++;
             next_frame = n * 1000 / fps;
@@ -105,8 +116,6 @@ void app_main(UART_HandleTypeDef* huart2, I2C_HandleTypeDef* hi2c1) {
         if (state.screen_dirty) {
             screen_to_array(state.screen, screen_buffer);
             if (!ssd1306_draw(*hi2c1, screen_buffer)) error = true;
-            else {
-            }
             state.screen_dirty = false;
         }
     }
