@@ -10,6 +10,20 @@ namespace {
     std::array<std::uint8_t, 1024> screen_buffer = {};
 }
 
+
+struct Key {
+    GPIO_TypeDef* gpio;
+    std::uint16_t pin;
+    std::uint8_t key = 0;
+};
+
+const std::array<Key, 4> keysMap = {
+    Key { BTN_UP_GPIO_Port, BTN_UP_Pin, 5 },
+    Key { BTN_DOWN_GPIO_Port, BTN_DOWN_Pin, 8 },
+    Key { BTN_LEFT_GPIO_Port, BTN_LEFT_Pin, 7 },
+    Key { BTN_RIGHT_GPIO_Port, BTN_RIGHT_Pin, 9 },
+};
+
 constexpr std::size_t row_size = 66;
 constexpr std::uint32_t fps = 60;
 
@@ -48,6 +62,15 @@ void app_main(UART_HandleTypeDef* huart2, I2C_HandleTypeDef* hi2c1) {
             HAL_GPIO_TogglePin(LED2_GPIO_PORT, LED2_PIN);
             HAL_Delay(100);
             continue;
+        }
+        for (const auto & key: keysMap) {
+        if (HAL_GPIO_ReadPin(key.gpio, key.pin) == GPIO_PIN_RESET) {
+            HAL_GPIO_TogglePin(LED2_GPIO_PORT, LED2_PIN);
+            state.update_key(key.key, true);
+        } else {
+            state.update_key(key.key, false);
+        }
+
         }
         if (HAL_GetTick() - start >= next_frame) {
             for (int i = 0; i < 100; ++i) {
