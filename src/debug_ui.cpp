@@ -73,8 +73,8 @@ namespace {
                 ImGui::Text("%d", row);
                 for (int i = 0; i < 8; ++i) {
                     ImGui::TableSetColumnIndex(1 + i);
-                    const uint16_t idx = row + (i * 2);
-                    const int instr = (state.memory[idx] << 8) | state.memory[idx + 1];
+                    const auto idx = static_cast<std::uint16_t>(row + i * 2);
+                    const auto instr = static_cast<std::uint16_t>((state.memory[idx] << 8) | state.memory[idx + 1]);
                     if (idx == state.pc) ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg, IM_COL32(0, 0, 255, 255));
 
                     ImGui::PushID(idx);
@@ -96,7 +96,7 @@ namespace {
         ImGui::End();
     }
 
-    constexpr std::array<uint8_t, 16> draw_order = {
+    constexpr std::array<std::uint8_t, 16> draw_order = {
         0x1, 0x2, 0x3, 0xC,
         0x4, 0x5, 0x6, 0xD,
         0x7, 0x8, 0x9, 0xE,
@@ -135,6 +135,7 @@ namespace {
             ImGui::SameLine();
             if (ImGui::Button("Unload ROM")) {
                 appstate->chip8_state.reset();
+                appstate->rom_file_path = "";
             }
         }
 
@@ -206,11 +207,11 @@ namespace {
             return;
         }
 
-        for (int i = memory_data_start; i < memory_size; i += 2) {
-            const std::uint16_t instr = (chip.memory[i] << 8) | chip.memory[i + 1];
+        for (std::size_t i = memory_data_start; i < memory_size; i += 2) {
+            const std::uint16_t instr = static_cast<std::uint16_t>(chip.memory[i] << 8) | chip.memory[i + 1];
 
             if (instr == 0x0000) continue;
-            ImGui::PushID(i);
+            ImGui::PushID(static_cast<int>(i));
             if (ImGui::RadioButton("##", std::ranges::find(appstate->breakpoints, i) != appstate->breakpoints.end())) {
                 // appstate->breakpoints.
             }

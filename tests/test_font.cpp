@@ -38,8 +38,8 @@ TEST_CASE("Fx29 points I at the font sprite of the low digit of Vx") {
     };
     std::span<std::uint8_t> sp_mem = mem;
     chip.load_rom(sp_mem);
-    chip.cycle();
-    chip.cycle();
+    CHECK(chip.cycle() == Chip8Error::None);
+    CHECK(chip.cycle() == Chip8Error::None);
 
     CHECK(chip.i_reg == 0x050 + 5 * 0xA);
     CHECK(chip.memory[chip.i_reg] == 0xF0); // first row of "A"
