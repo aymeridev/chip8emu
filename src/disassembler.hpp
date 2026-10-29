@@ -8,7 +8,7 @@ inline std::string disassemble(const std::uint16_t instruction) {
     std::string txt;
 
     const std::uint16_t nnn = instruction & 0x0FFF;
-    const std::uint8_t nn = instruction & 0x00FF;
+    const auto nn = static_cast<std::uint8_t>(instruction & 0x00FF);
     const std::uint8_t n = instruction & 0x000F;
     const std::uint8_t x = (instruction >> 8) & 0x0F;
     const std::uint8_t y = (instruction >> 4) & 0x0F;

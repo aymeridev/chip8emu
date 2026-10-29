@@ -151,7 +151,7 @@ namespace {
             ImGui::Text("You can select one with the menu.");
         } else {
             if (ImGui::Button("Step")) {
-                appstate->chip8_state.tick_timers();
+                if (appstate->chip8_state.waiting_for_vblank) appstate->chip8_state.tick_timers();
                 if (const auto err = appstate->chip8_state.cycle(); err != Chip8Error::None) {
                     appstate->handle_cycle_error(err);
                 }
