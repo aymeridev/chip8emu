@@ -9,6 +9,9 @@
 #include "imgui.h"
 #include "imgui_impl_sdl3.h"
 #include "imgui_impl_sdlrenderer3.h"
+
+#include "misc/cpp/imgui_stdlib.h"
+
 #include "random.hpp"
 #include "utils_io.hpp"
 
@@ -221,7 +224,10 @@ namespace {
             ImGui::Text("0x%X", static_cast<int>(i));
             ImGui::SameLine();
             ImGui::PushID(static_cast<int>(i));
-            ImGui::InputText("##register_name", appstate->register_names[i].data(), sizeof(appstate->register_names[i]), ImGuiInputTextFlags_EnterReturnsTrue);
+            ImGui::InputText(
+                "##register_name",
+                &appstate->register_names[i],
+                ImGuiInputTextFlags_EnterReturnsTrue);
             ImGui::PopID();
             ImGui::SameLine();
             ImGui::Text("%d", appstate->chip8_state.v[i]);
