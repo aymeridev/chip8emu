@@ -29,6 +29,20 @@ constexpr std::size_t row_size = 66;
 constexpr std::uint32_t fps = 60;
 
 
+void screen_to_array(const std::array<std::uint64_t, screen_height>& screen, std::array<std::uint8_t, 1024>& out) {
+    out.fill(0x00);
+    for (int page = 0; page < 8; ++page) {
+        for (int c = 0; c < 128; ++c) {
+            for (int b = 0; b < 8; ++b) {
+                if ((screen[(page * 8 + b) / 2] >> static_cast<std::uint64_t>(c / 2)) & 1) { // pixel on
+                    out[128 * page + c] |= 1 << b;
+                }
+            }
+        }
+    }
+}
+
+
 void i2c_bus_recover() {
     HAL_GPIO_WritePin(OLED_SCL_GPIO_Port, OLED_SCL_Pin | OLED_SDA_Pin, GPIO_PIN_SET);
     GPIO_InitTypeDef init = {};
@@ -106,17 +120,7 @@ void app_main(UART_HandleTypeDef* huart2, I2C_HandleTypeDef* hi2c1, TIM_HandleTy
         }
         if (state.screen_dirty) {
 
-            // convert chip-8 screen to an uint8 array
-            screen_buffer.fill(0x00);
-            for (int page = 0; page < 8; ++page) {
-                for (int c = 0; c < 128; ++c) {
-                    for (int b = 0; b < 8; ++b) {
-                        if ((state.screen[(page * 8 + b) / 2] >> static_cast<std::uint64_t>(c / 2)) & 1) { // pixel on
-                            screen_buffer[128 * page + c] |= 1 << b;
-                        }
-                    }
-                }
-            }
+            screen_to_array(state.screen, screen_buffer);
             if (!ssd1306_draw(*hi2c1, screen_buffer)) error = true;
             state.screen_dirty = false;
         }
