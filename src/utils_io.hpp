@@ -7,6 +7,7 @@
 #include <fstream>
 
 #include "chip8_state.hpp"
+#include "app_state.hpp"
 
 inline std::vector<std::filesystem::path> list_roms_from_dir(const std::string& path) {
     std::vector<std::filesystem::path> roms;

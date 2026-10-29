@@ -96,7 +96,7 @@ namespace {
         ImGui::End();
     }
 
-    constexpr std::array<u_int8_t, 16> draw_order = {
+    constexpr std::array<uint8_t, 16> draw_order = {
         0x1, 0x2, 0x3, 0xC,
         0x4, 0x5, 0x6, 0xD,
         0x7, 0x8, 0x9, 0xE,

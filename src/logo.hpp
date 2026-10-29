@@ -1,5 +1,8 @@
 #pragma once
+
 #include <array>
+#include <cstdint>
+
 namespace detail {
 constexpr std::array<uint8_t, 256> boot_logo = {
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
