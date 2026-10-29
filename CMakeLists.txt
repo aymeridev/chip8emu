@@ -156,7 +156,7 @@ if (MSVC)
 else ()
 
     target_compile_options(chip8core PRIVATE -fno-exceptions -fno-rtti)
-    target_compile_options(chip8options INTERFACE -Wconversion -Wsign-conversion -Wall -Wextra -Wpedantic)
+    target_compile_options(chip8options INTERFACE -Wconversion -Wsign-conversion -Wall -Wextra -Werror -Wpedantic)
     if(NOT CHIP8_BUILD_STM32 AND ENABLE_SANITIZERS)
         target_compile_options(chip8options INTERFACE -fsanitize=address,undefined)
         target_link_options(chip8options INTERFACE -fsanitize=address,undefined)
