@@ -26,14 +26,7 @@ constexpr std::array<std::uint8_t, 80> font = {
 };
 
 Chip8State::Chip8State() {
-    std::ranges::copy(font, memory.begin() + font_start);
-
-    // logo
-    for (std::uint8_t y = 0; y < screen_height; ++y) {
-        for (std::uint8_t x = 0; x < screen_width; ++x) {
-            if (get_pixel(x, y)) screen[y] |= (std::uint64_t { 1 } << x);
-        }
-    }
+    reset();
 }
 
 void Chip8State::tick_timers() {
@@ -51,7 +44,6 @@ void Chip8State::reset() {
     for (std::uint8_t y = 0; y < screen_height; ++y) {
         for (std::uint8_t x = 0; x < screen_width; ++x) {
             if (get_pixel(x, y)) screen[y] |= (std::uint64_t { 1 } << x);
-            else screen[y] |= (std::uint64_t { 0 } << x);
         }
     }
 
@@ -76,11 +68,11 @@ void Chip8State::reset() {
 
 
 bool Chip8State::load_rom(std::span<const std::uint8_t> rom_data) {
-    reset();
-    screen.fill(0);
     if (rom_data.size() > memory_size - memory_data_start) {
         return false;
     }
+    reset();
+    screen.fill(0);
     std::ranges::copy(rom_data, memory.begin() + memory_data_start);
     rom_loaded = true;
     return true;
@@ -147,17 +139,17 @@ Chip8Error Chip8State::decode_and_execute(uint16_t instruction) {
             pc = nnn;
             break;
         case 3:
-            if (pc < 0xFFF && v[x] == nn) {
+            if (v[x] == nn) {
                 pc += 2;
             }
             break;
         case 4:
-            if (pc < 0xFFF && v[x] != nn) {
+            if (v[x] != nn) {
                 pc += 2;
             }
             break;
         case 5:
-            if (pc < 0xFFF && n == 0 && v[x] == v[y]) pc += 2;
+            if (n == 0 && v[x] == v[y]) pc += 2;
             /* XO-CHIP */ if (n == 2) break;
             /* XO-CHIP */ if (n == 3) break;
             break;
@@ -230,9 +222,8 @@ Chip8Error Chip8State::decode_and_execute(uint16_t instruction) {
         case 0xF:
             switch (nn) {
                 case 0x00:
-                    if (pc < 0xFFF) {
-                        i_reg = fetch();
-                    }
+                    if (pc >= 0xFFF) return Chip8Error::PcOutOfBounds;
+                    i_reg = fetch();
                     break;
                 case 0x07:
                     v[x] = delay_timer;
@@ -335,7 +326,7 @@ Chip8Error Chip8State::run_math(std::uint8_t n, std::uint8_t x, std::uint8_t y) 
             // set vX to vY and shift vX one bit to the left, set vF to the bit shifted out, even if X=F!
             v[x] = v[y];
             const std::uint8_t bit = (v[x] & 0x80) >> 7;
-            v[x] <<= static_cast<std::uint8_t>(1);
+            v[x] = static_cast<std::uint8_t>(v[x] << 1);
             v[0xF] = bit;
             break;
         }
