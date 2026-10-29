@@ -27,6 +27,8 @@ constexpr std::array<std::uint8_t, 80> font = {
 
 Chip8State::Chip8State() {
     std::ranges::copy(font, memory.begin() + font_start);
+
+    // logo
     for (std::uint8_t y = 0; y < screen_height; ++y) {
         for (std::uint8_t x = 0; x < screen_width; ++x) {
             if (get_pixel(x, y)) screen[y] |= (std::uint64_t { 1 } << x);
@@ -44,10 +46,12 @@ void Chip8State::reset() {
     rom_loaded = false;
     memory.fill(0);
     screen.fill(0);
-    std::ranges::copy(font, memory.begin() + font_start);
+
+    // logo
     for (std::uint8_t y = 0; y < screen_height; ++y) {
         for (std::uint8_t x = 0; x < screen_width; ++x) {
             if (get_pixel(x, y)) screen[y] |= (std::uint64_t { 1 } << x);
+            else screen[y] |= (std::uint64_t { 0 } << x);
         }
     }
 
@@ -73,6 +77,7 @@ void Chip8State::reset() {
 
 bool Chip8State::load_rom(std::span<const std::uint8_t> rom_data) {
     reset();
+    screen.fill(0);
     if (rom_data.size() > memory_size - memory_data_start) {
         return false;
     }
