@@ -78,12 +78,12 @@ namespace {
                     if (idx == state.pc) ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg, IM_COL32(0, 0, 255, 255));
 
                     ImGui::PushID(idx);
-                    if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNone)) {
-                        ImGui::SetTooltip("%s", disassemble(instr).c_str());
-                    }
                     if (instr == 0x0) ImGui::BeginDisabled();
                     if (ImGui::TextLink(std::format("{:04X}", instr).c_str())) {
                         state.pc = idx;
+                    }
+                    if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNone)) {
+                        ImGui::SetTooltip("%s", disassemble(instr).c_str());
                     }
                     if (instr == 0x0) ImGui::EndDisabled();
                     ImGui::PopID();
@@ -197,7 +197,7 @@ namespace {
     void draw_disassembler(AppState* appstate, const ImVec2 pos, const ImVec2 size) {
         ImGui::SetNextWindowPos(pos);
         ImGui::SetNextWindowSize(size);
-        const auto chip = appstate->chip8_state;
+        const auto& chip = appstate->chip8_state;
 
 
         if (!ImGui::Begin("Disassembler", nullptr, default_window_flags)) {
@@ -284,9 +284,8 @@ namespace {
             appstate->chip8_state.screen_dirty = true;
         }
         ImGui::SeparatorText("Audio");
-        if (ImGui::Checkbox("Enable Audio", &appstate->enable_audio)) {
-            appstate->enable_audio = !appstate->enable_audio;
-        }
+        ImGui::Checkbox("Enable Audio", &appstate->enable_audio);
+
 
         if (!appstate->enable_audio) ImGui::BeginDisabled();
 
@@ -317,7 +316,7 @@ namespace {
 }
 
 void DebugUI::update(AppState *appstate) {
-    auto chip8_state = appstate->chip8_state;
+    auto& chip8_state = appstate->chip8_state;
     const auto& renderer = appstate->renderer;
 
     ImGui_ImplSDLRenderer3_NewFrame();
@@ -352,6 +351,7 @@ void DebugUI::update(AppState *appstate) {
             ImGui::Text("%s", m_message.c_str());
             if (ImGui::Button("OK")) {
                 m_message.clear();
+                m_show_message = false;
                 ImGui::CloseCurrentPopup();
             }
             ImGui::EndPopup();
