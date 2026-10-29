@@ -27,19 +27,19 @@ public:
     std::array<float, 3> foreground_color { 0.969f, 0.808f, 0.274f };
     SDL_Texture *texture = nullptr;
     Uint32 pixels[screen_width * screen_height] = {};
-    static constexpr std::array<SDL_Keycode, 16> keys = {
-        SDLK_X, SDLK_1, SDLK_2, SDLK_3,
-        SDLK_A, SDLK_Z, SDLK_E, SDLK_Q,
-        SDLK_S, SDLK_D, SDLK_W, SDLK_C,
-        SDLK_4, SDLK_R, SDLK_F, SDLK_V,
-     };
+    static constexpr std::array<SDL_Scancode, 16> keys = {
+        SDL_SCANCODE_X, SDL_SCANCODE_1, SDL_SCANCODE_2, SDL_SCANCODE_3,
+        SDL_SCANCODE_A, SDL_SCANCODE_Z, SDL_SCANCODE_E, SDL_SCANCODE_Q,
+        SDL_SCANCODE_S, SDL_SCANCODE_D, SDL_SCANCODE_W, SDL_SCANCODE_C,
+        SDL_SCANCODE_4, SDL_SCANCODE_R, SDL_SCANCODE_F, SDL_SCANCODE_V,
+    };
     std::array<std::uint16_t, 32> breakpoints {};
 
     // static constexpr std::array<SDL_Keycode, 16> keys = {
-    //     SDLK_1, SDLK_2, SDLK_3, SDLK_4,
-    //     SDLK_A, SDLK_Z, SDLK_E, SDLK_R,
-    //     SDLK_Q, SDLK_S, SDLK_D, SDLK_F,
-    //     SDLK_W, SDLK_X, SDLK_C, SDLK_V,
+    //     SDL_SCANCODE_1, SDL_SCANCODE_2, SDL_SCANCODE_3, SDL_SCANCODE_4,
+    //     SDL_SCANCODE_A, SDL_SCANCODE_Z, SDL_SCANCODE_E, SDL_SCANCODE_R,
+    //     SDL_SCANCODE_Q, SDL_SCANCODE_S, SDL_SCANCODE_D, SDL_SCANCODE_F,
+    //     SDL_SCANCODE_W, SDL_SCANCODE_X, SDL_SCANCODE_C, SDL_SCANCODE_V,
     //  };
 
     float pixel_scale = 24.0f;
