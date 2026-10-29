@@ -134,17 +134,19 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
 
 
     constexpr int minimum_audio = 1500 * sizeof(float);
-    while (SDL_GetAudioStreamQueued(state->stream) < minimum_audio) {
+    while (SDL_GetAudioStreamQueued(state->stream) < minimum_audio || state->pause) {
         static float samples[512];
 
         for (float & sample : samples) {
-            if (state->chip8_state.sound_timer > 0) {
+            if (state->chip8_state.sound_timer > 0 && !state->pause) {
+                state->gain = std::min(1.0f, state->gain + 1 / 220.f);
                 state->phase += state->frequency / 44100.0f;
-                if (state->phase >= 0.5f) sample = 1.0f * state->volume;
-                else sample = -1.0f * state->volume;
+                if (state->phase >= 0.5f) sample = 1.0f * state->volume * state->gain;
+                else sample = -1.0f * state->volume * state->gain;
 
                 if (state->phase >= 1.0f) state->phase -= 1.0f;
             } else {
+                state->gain = std::max(0.0f, state->gain - 1 / 220.f);
                 sample = 0.0f;
             }
         }
@@ -200,5 +202,6 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
 void SDL_AppQuit(void *appstate, SDL_AppResult) {
     const auto state = static_cast<AppState*>(appstate);
     SDL_DestroyTexture(state->texture);
+    SDL_DestroyAudioStream(state->stream);
     delete state;
 }

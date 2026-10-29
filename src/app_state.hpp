@@ -54,6 +54,7 @@ public:
     float volume = 0.5f;
     float frequency = 440.0f;
     float phase = 0.0f;
+    float gain = 0.0f;
 
     bool pause = false;
 
