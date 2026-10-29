@@ -150,17 +150,17 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
         static float samples[512];
 
         for (float & sample : samples) {
+            float wave = 0.0f;
             if (state->chip8_state.sound_timer > 0 && !state->pause) {
                 state->gain = std::min(1.0f, state->gain + 1 / 220.f);
                 state->phase += state->frequency / 44100.0f;
-                if (state->phase >= 0.5f) sample = 1.0f * state->volume * state->gain;
-                else sample = -1.0f * state->volume * state->gain;
+                if (state->phase >= 0.5f) wave = 1.0f;
+                else wave = -1.0f;
 
                 if (state->phase >= 1.0f) state->phase -= 1.0f;
-            } else {
-                state->gain = std::max(0.0f, state->gain - 1 / 220.f);
-                sample = state->volume * state->gain;
-            }
+            } else state->gain = std::max(0.0f, state->gain - 1 / 220.f);
+
+            sample = wave * state->volume * state->gain;
         }
         SDL_PutAudioStreamData(state->stream, samples, 512 * sizeof(float));
     }
