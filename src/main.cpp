@@ -146,19 +146,14 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
 
     const auto tick_now = static_cast<float>(SDL_GetTicks());
     if (!state->pause) {
-        state->cycle_timer -= (tick_now - state->last_tick) / 1000.0f;
         state->tick_timer -= (tick_now - state->last_tick) / 1000.0f;
     }
     state->last_tick = tick_now;
 
-    if (state->cycle_timer <= 0.0f) {
-        state->run_frame();
-        state->cycle_timer = cycle_total_timer;
-    }
-
     if (state->tick_timer <= 0.0f) {
         state->chip8_state.tick_timers();
-        state->tick_timer = tick_total_timer;
+        state->run_frame();
+        state->tick_timer += total_tick_timer;
     }
 
     SDL_SetRenderScale(state->renderer, 1.0f, 1.0f);

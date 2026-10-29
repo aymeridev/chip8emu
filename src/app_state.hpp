@@ -14,8 +14,7 @@ struct RomEntry {
     bool is_game;
 };
 
-constexpr float cycle_total_timer = 1.0f / 60.0f;
-constexpr float tick_total_timer = 1.0f / 60.0f;
+constexpr float total_tick_timer = 1.0f / 60.0f;
 
 class AppState {
 public:
@@ -44,9 +43,8 @@ public:
     //  };
 
     float pixel_scale = 24.0f;
-    float cycle_timer = cycle_total_timer;
     int cycles_per_tick = 100;
-    float tick_timer = tick_total_timer;
+    float tick_timer = total_tick_timer;
     float last_tick;
     std::array<std::string, 16> register_names = {};
 

@@ -139,6 +139,7 @@ namespace {
                 load_rom_from_file(appstate, appstate->rom_file_path);
                 appstate->pause = false;
             }
+
             ImGui::Text("Current Rom: %s", appstate->rom_file_path.c_str());
             ImGui::Text("Program Counter: %d", appstate->chip8_state.pc);
             ImGui::Text("Stack Pointer: %d", appstate->chip8_state.sp);
