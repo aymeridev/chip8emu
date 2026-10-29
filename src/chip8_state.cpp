@@ -44,6 +44,13 @@ void Chip8State::reset() {
     rom_loaded = false;
     memory.fill(0);
     screen.fill(0);
+    std::ranges::copy(font, memory.begin() + font_start);
+    for (std::uint8_t y = 0; y < screen_height; ++y) {
+        for (std::uint8_t x = 0; x < screen_width; ++x) {
+            if (get_pixel(x, y)) screen[y] |= (std::uint64_t { 1 } << x);
+        }
+    }
+
     screen_dirty = true;
     pc = memory_data_start;
     v.fill(0);
