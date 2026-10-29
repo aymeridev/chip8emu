@@ -11,7 +11,7 @@
 
 A CHIP-8 Emulator made with C++20 (and CMake >= 3.31) with no dynamic allocations for the core, an [STM32](#stm32) port and for the desktop an SDL3 Frontend with a complete set of Dear ImGui tools to inspect and debug ROMs.
 
-The emulator currently passes tests 1 to 5 from [Timendus CHIP-8 Test Suite](https://github.com/Timendus/chip8-test-suite).
+The emulator currently passes tests 1 to 6 from [Timendus CHIP-8 Test Suite](https://github.com/Timendus/chip8-test-suite).
 
 
 ## Features
