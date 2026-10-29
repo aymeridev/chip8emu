@@ -133,8 +133,20 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     auto* state = static_cast<AppState*>(appstate);
 
 
+
+    const auto tick_now = static_cast<float>(SDL_GetTicks());
+    if (!state->pause) {
+        state->tick_timer -= (tick_now - state->last_tick) / 1000.0f;
+    }
+    state->last_tick = tick_now;
+
+    if (state->tick_timer <= 0.0f) {
+        state->run_frame();
+        state->tick_timer += total_tick_timer;
+    }
+
     constexpr int minimum_audio = 1500 * sizeof(float);
-    while (SDL_GetAudioStreamQueued(state->stream) < minimum_audio || state->pause) {
+    while (state->stream && SDL_GetAudioStreamQueued(state->stream) < minimum_audio) {
         static float samples[512];
 
         for (float & sample : samples) {
@@ -147,21 +159,10 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
                 if (state->phase >= 1.0f) state->phase -= 1.0f;
             } else {
                 state->gain = std::max(0.0f, state->gain - 1 / 220.f);
-                sample = 0.0f;
+                sample = state->volume * state->gain;
             }
         }
         SDL_PutAudioStreamData(state->stream, samples, 512 * sizeof(float));
-    }
-
-    const auto tick_now = static_cast<float>(SDL_GetTicks());
-    if (!state->pause) {
-        state->tick_timer -= (tick_now - state->last_tick) / 1000.0f;
-    }
-    state->last_tick = tick_now;
-
-    if (state->tick_timer <= 0.0f) {
-        state->run_frame();
-        state->tick_timer += total_tick_timer;
     }
 
     SDL_SetRenderScale(state->renderer, 1.0f, 1.0f);
