@@ -11,11 +11,11 @@ void AppState::run_frame() {
                 pause = true;
                 const auto msg = std::format(
                     "Error Occured (Code {})",
-                    static_cast<int>(err)).data();
+                    static_cast<int>(err));
                 if (debug_ui) {
-                    debug_ui->show_message(msg);
+                    debug_ui->show_message(msg.data());
                 }
-                SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "%s", msg);
+                SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "%s", msg.data());
             }
             break;
         }
