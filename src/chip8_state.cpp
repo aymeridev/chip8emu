@@ -135,17 +135,17 @@ Chip8Error Chip8State::decode_and_execute(uint16_t instruction) {
             pc = nnn;
             break;
         case 3:
-            if (v[x] == nn) {
+            if (pc < 0xFFF && v[x] == nn) {
                 pc += 2;
             }
             break;
         case 4:
-            if (v[x] != nn) {
+            if (pc < 0xFFF && v[x] != nn) {
                 pc += 2;
             }
             break;
         case 5:
-            if (n == 0 && v[x] == v[y]) pc += 2;
+            if (pc < 0xFFF && n == 0 && v[x] == v[y]) pc += 2;
             /* XO-CHIP */ if (n == 2) break;
             /* XO-CHIP */ if (n == 3) break;
             break;
@@ -218,7 +218,9 @@ Chip8Error Chip8State::decode_and_execute(uint16_t instruction) {
         case 0xF:
             switch (nn) {
                 case 0x00:
-                    i_reg = fetch();
+                    if (pc < 0xFFF) {
+                        i_reg = fetch();
+                    }
                     break;
                 case 0x07:
                     v[x] = delay_timer;
