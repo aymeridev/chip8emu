@@ -110,61 +110,12 @@ namespace {
             return;
         }
 
-        ImGui::SeparatorText("Current Rom");
-
-
-
-
-        if (!appstate->chip8_state.rom_loaded) {
-            ImGui::Text("No ROM loaded.");
-            ImGui::Text("You can select one with the menu.");
-        } else {
-            ImGui::SliderInt("Cycles Per Tick", &appstate->cycles_per_tick, 1, 1000);
-
-            ImGui::Checkbox("Pause Execution", &appstate->pause);
-            if (ImGui::Button("Step")) {
-                appstate->run_frame();
-                appstate->pause = true;
-            }
-            ImGui::SameLine();
-            if (ImGui::Button("Next Frame")) {
-                if (const auto err = appstate->chip8_state.cycle(); err != Chip8Error::PcOutOfBounds) {
-                    appstate->debug_ui->show_message(std::format(
-                        "Error Occured ({})",
-                        static_cast<int>(err)).data());
-                }
-                appstate->pause = true;
-            }
-            if (ImGui::Button("Reset")) {
-                load_rom_from_file(appstate, appstate->rom_file_path);
-                appstate->pause = false;
-            }
-
-            ImGui::Text("Current Rom: %s", appstate->rom_file_path.c_str());
-            ImGui::Text("Program Counter: %d", appstate->chip8_state.pc);
-            ImGui::Text("Stack Pointer: %d", appstate->chip8_state.sp);
-            ImGui::Text("Sound Timer: %d", appstate->chip8_state.sound_timer);
-            ImGui::Text("i Register: %d", appstate->chip8_state.i_reg);
-            ImGui::Text("On the Memory Viewer tab, you can also\nclick a word to jump to it.");
-
-            ImGui::SeparatorText("Keyboard");
-
-            int idx = 0;
-            for (const auto key_order: draw_order) {
-                const auto key = AppState::keys[key_order];
-                if (!appstate->chip8_state.keys[key_order]) ImGui::BeginDisabled();
-
-                ImGui::PushID(idx);
-                ImGui::Text("%X (%s)", key_order, SDL_GetKeyName(key));
-                ImGui::PopID();
-                if (!appstate->chip8_state.keys[key_order]) ImGui::EndDisabled();
-                idx++;
-                if (idx % 4 != 0) ImGui::SameLine();
-            }
-        }
-
         const std::string& current_path = appstate->rom_file_path;
-        if (ImGui::BeginCombo("roms list", current_path.empty() ? "no rom loaded" : current_path.data())) {
+        ImGui::Text("Select a ROM in the list below");
+        ImGui::TextColored(
+            ImVec4{ 0.6f, 0.6f, 0.6f, 1.0f },
+            "or drag and drop one from your computer (.ch8)");
+        if (ImGui::BeginCombo("##roms list", current_path.empty() ? "no rom loaded" : current_path.data())) {
             ImGui::Selectable("Demo Roms", false, ImGuiSelectableFlags_Highlight | ImGuiSelectableFlags_Disabled);
             bool games_section = false;
             for (const auto&[path, name, is_game] : appstate->roms) {
@@ -178,6 +129,66 @@ namespace {
                 }
             }
             ImGui::EndCombo();
+        }
+
+        if (appstate->chip8_state.rom_loaded) {
+            ImGui::SameLine();
+            if (ImGui::Button("Unload ROM")) {
+                appstate->chip8_state.reset();
+            }
+        }
+
+
+        ImGui::SeparatorText("Current Rom");
+
+
+
+        ImGui::Checkbox("Pause Execution", &appstate->pause);
+
+        if (!appstate->chip8_state.rom_loaded) {
+            ImGui::Text("No ROM loaded.");
+            ImGui::Text("You can select one with the menu.");
+        } else {
+            if (ImGui::Button("Step")) {
+                appstate->chip8_state.tick_timers();
+                if (const auto err = appstate->chip8_state.cycle(); err != Chip8Error::None) {
+                    appstate->handle_cycle_error(err);
+                }
+                appstate->pause = true;
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Next Frame")) {
+                appstate->run_frame();
+                appstate->pause = true;
+            }
+            if (ImGui::Button("Reset")) {
+                load_rom_from_file(appstate, appstate->rom_file_path);
+                appstate->pause = false;
+            }
+
+            ImGui::Text("Rom File Path: %s", appstate->rom_file_path.c_str());
+            ImGui::Text("Program Counter: %d", appstate->chip8_state.pc);
+            ImGui::Text("Stack Pointer: %d", appstate->chip8_state.sp);
+            ImGui::Text("Sound Timer: %d", appstate->chip8_state.sound_timer);
+            ImGui::Text("i Register: %d", appstate->chip8_state.i_reg);
+
+            ImGui::Text("On the Memory Viewer tab, you can also\nclick a word to jump to it.");
+
+        }
+
+        ImGui::SeparatorText("Keyboard");
+
+        int idx = 0;
+        for (const auto key_order: draw_order) {
+            const auto key = AppState::keys[key_order];
+            if (!appstate->chip8_state.keys[key_order]) ImGui::BeginDisabled();
+
+            ImGui::PushID(idx);
+            ImGui::Text("%X (%s)", key_order, SDL_GetKeyName(key));
+            ImGui::PopID();
+            if (!appstate->chip8_state.keys[key_order]) ImGui::EndDisabled();
+            idx++;
+            if (idx % 4 != 0) ImGui::SameLine();
         }
 
         ImGui::End();
@@ -249,6 +260,12 @@ namespace {
             ImGui::End();
             return;
         }
+
+
+        ImGui::SeparatorText("CPU");
+        ImGui::Text("Cycles Per Tick");
+        ImGui::SliderInt("##cycles", &appstate->cycles_per_tick, 1, 1000);
+
 
         ImGui::SeparatorText("Display");
         ImGui::Text("Background Color");
