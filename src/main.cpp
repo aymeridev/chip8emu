@@ -35,7 +35,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int, char *[]) {
     auto* state = new AppState;
     *appstate = state;
 
-    constexpr SDL_AudioSpec spec { SDL_AUDIO_F32, 1, 44100 };
+    constexpr SDL_AudioSpec spec { .format = SDL_AUDIO_F32, .channels = 1, .freq = 44100 };
     state->stream = SDL_OpenAudioDeviceStream(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &spec, nullptr, nullptr);
     if (!state->stream) {
         SDL_Log("Couldn't open audio device: %s", SDL_GetError());
@@ -133,16 +133,23 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     auto* state = static_cast<AppState*>(appstate);
 
 
-    // TODO: audio
-    // const int minimum_audio = (8000 * sizeof(float)) / 2;
-    // if (SDL_GetAudioStreamQueued(state->stream) < minimum_audio) {
-    //     static float samples[512];
-    //
-    //     for (size_t i = 0; i < std::size(samples); i++) {
-    //     }
-    //
-    //     SDL_PutAudioStreamData(state->stream, samples, sizeof (samples));
-    // }
+    constexpr int minimum_audio = 1500 * sizeof(float);
+    while (SDL_GetAudioStreamQueued(state->stream) < minimum_audio) {
+        static float samples[512];
+
+        for (float & sample : samples) {
+            if (state->chip8_state.sound_timer > 0) {
+                state->phase += state->frequency / 44100.0f;
+                if (state->phase >= 0.5f) sample = 1.0f * state->volume;
+                else sample = -1.0f * state->volume;
+
+                if (state->phase >= 1.0f) state->phase -= 1.0f;
+            } else {
+                sample = 0.0f;
+            }
+        }
+        SDL_PutAudioStreamData(state->stream, samples, 512 * sizeof(float));
+    }
 
     const auto tick_now = static_cast<float>(SDL_GetTicks());
     if (!state->pause) {
