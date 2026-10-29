@@ -112,7 +112,7 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
 
         const auto file_path = event->drop.data;
 
-        if (std::filesystem::path(file_path).extension() == ".8o") {
+        if (std::filesystem::path(file_path).extension() == ".ch8") {
             if (!load_rom_from_file(state, file_path)) {
                 show_message(state, "Error while loading file");
             }
