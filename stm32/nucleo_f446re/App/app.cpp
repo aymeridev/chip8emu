@@ -8,38 +8,26 @@
 namespace {
     auto state = Chip8State();
     std::array<std::uint8_t, 1024> screen_buffer = {};
+
+    struct Key {
+        GPIO_TypeDef* gpio {};
+        std::uint16_t pin {};
+        std::uint8_t key = 0;
+    };
 }
 
 
-struct Key {
-    GPIO_TypeDef* gpio;
-    std::uint16_t pin;
-    std::uint8_t key = 0;
-};
 
 const std::array<Key, 4> keysMap = {
-    Key { BTN_UP_GPIO_Port, BTN_UP_Pin, 5 },
-    Key { BTN_DOWN_GPIO_Port, BTN_DOWN_Pin, 8 },
-    Key { BTN_LEFT_GPIO_Port, BTN_LEFT_Pin, 7 },
-    Key { BTN_RIGHT_GPIO_Port, BTN_RIGHT_Pin, 9 },
+    Key {.gpio = BTN_UP_GPIO_Port,    .pin = BTN_UP_Pin,    .key = 5 },
+    Key {.gpio = BTN_DOWN_GPIO_Port,  .pin = BTN_DOWN_Pin,  .key = 8 },
+    Key {.gpio = BTN_LEFT_GPIO_Port,  .pin = BTN_LEFT_Pin,  .key = 7 },
+    Key {.gpio = BTN_RIGHT_GPIO_Port, .pin = BTN_RIGHT_Pin, .key = 9 },
 };
 
 constexpr std::size_t row_size = 66;
 constexpr std::uint32_t fps = 60;
 
-
-void screen_to_array(const std::array<std::uint64_t, screen_height>& screen, std::array<std::uint8_t, 1024>& out) {
-    out.fill(0x00);
-    for (int page = 0; page < 8; ++page) {
-        for (int c = 0; c < 128; ++c) {
-            for (int b = 0; b < 8; ++b) {
-                if ((screen[(page * 8 + b) / 2] >> static_cast<std::uint64_t>(c / 2)) & 1) { // pixel on
-                    out[128 * page + c] |= 1 << b;
-                }
-            }
-        }
-    }
-}
 
 void i2c_bus_recover() {
     HAL_GPIO_WritePin(OLED_SCL_GPIO_Port, OLED_SCL_Pin | OLED_SDA_Pin, GPIO_PIN_SET);
@@ -55,7 +43,6 @@ void i2c_bus_recover() {
         HAL_Delay(1);
         HAL_GPIO_WritePin(OLED_SCL_GPIO_Port, OLED_SCL_Pin, GPIO_PIN_SET);
         HAL_Delay(1);
-
     }
 
     HAL_GPIO_WritePin(OLED_SCL_GPIO_Port, OLED_SCL_Pin, GPIO_PIN_RESET);
@@ -69,7 +56,7 @@ void i2c_bus_recover() {
 
 void app_main(UART_HandleTypeDef* huart2, I2C_HandleTypeDef* hi2c1, TIM_HandleTypeDef* htim3) {
     state.load_rom(rom);
-    auto start = HAL_GetTick();
+    const auto start = HAL_GetTick();
     std::uint64_t next_frame = 0;
     std::uint64_t n = 0;
     bool error = false;
@@ -82,6 +69,10 @@ void app_main(UART_HandleTypeDef* huart2, I2C_HandleTypeDef* hi2c1, TIM_HandleTy
 
     while (true) {
         if (error) {
+            if (sound_timer_active) {
+                HAL_TIM_PWM_Stop(htim3, TIM_CHANNEL_2);
+                sound_timer_active = false;
+            }
             HAL_GPIO_TogglePin(LED2_GPIO_PORT, LED2_PIN);
             HAL_Delay(100);
             continue;
@@ -114,7 +105,18 @@ void app_main(UART_HandleTypeDef* huart2, I2C_HandleTypeDef* hi2c1, TIM_HandleTy
             next_frame = n * 1000 / fps;
         }
         if (state.screen_dirty) {
-            screen_to_array(state.screen, screen_buffer);
+
+            // convert chip-8 screen to an uint8 array
+            screen_buffer.fill(0x00);
+            for (int page = 0; page < 8; ++page) {
+                for (int c = 0; c < 128; ++c) {
+                    for (int b = 0; b < 8; ++b) {
+                        if ((state.screen[(page * 8 + b) / 2] >> static_cast<std::uint64_t>(c / 2)) & 1) { // pixel on
+                            screen_buffer[128 * page + c] |= 1 << b;
+                        }
+                    }
+                }
+            }
             if (!ssd1306_draw(*hi2c1, screen_buffer)) error = true;
             state.screen_dirty = false;
         }
