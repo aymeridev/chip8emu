@@ -184,7 +184,8 @@ namespace {
             if (!appstate->chip8_state.keys[key_order]) ImGui::BeginDisabled();
 
             ImGui::PushID(idx);
-            ImGui::Text("%X (%s)", key_order, SDL_GetKeyName(key));
+            ImGui::Text("%X (%s)", key_order, SDL_GetKeyName(SDL_GetKeyFromScancode(
+                key, SDL_KMOD_NONE, false)));
             ImGui::PopID();
             if (!appstate->chip8_state.keys[key_order]) ImGui::EndDisabled();
             idx++;

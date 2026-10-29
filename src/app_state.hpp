@@ -29,8 +29,8 @@ public:
     Uint32 pixels[screen_width * screen_height] = {};
     static constexpr std::array<SDL_Scancode, 16> keys = {
         SDL_SCANCODE_X, SDL_SCANCODE_1, SDL_SCANCODE_2, SDL_SCANCODE_3,
-        SDL_SCANCODE_A, SDL_SCANCODE_Z, SDL_SCANCODE_E, SDL_SCANCODE_Q,
-        SDL_SCANCODE_S, SDL_SCANCODE_D, SDL_SCANCODE_W, SDL_SCANCODE_C,
+        SDL_SCANCODE_Q, SDL_SCANCODE_W, SDL_SCANCODE_E, SDL_SCANCODE_A,
+        SDL_SCANCODE_S, SDL_SCANCODE_D, SDL_SCANCODE_Z, SDL_SCANCODE_C,
         SDL_SCANCODE_4, SDL_SCANCODE_R, SDL_SCANCODE_F, SDL_SCANCODE_V,
     };
     std::array<std::uint16_t, 32> breakpoints {};
