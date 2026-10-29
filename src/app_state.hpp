@@ -60,4 +60,5 @@ public:
     std::vector<RomEntry> roms;
 
     void run_frame();
+    void handle_cycle_error(Chip8Error error);
 };

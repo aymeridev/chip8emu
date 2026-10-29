@@ -151,7 +151,6 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     state->last_tick = tick_now;
 
     if (state->tick_timer <= 0.0f) {
-        state->chip8_state.tick_timers();
         state->run_frame();
         state->tick_timer += total_tick_timer;
     }
