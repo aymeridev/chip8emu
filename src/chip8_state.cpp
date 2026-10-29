@@ -86,11 +86,13 @@ Chip8Error Chip8State::cycle() {
 
 void Chip8State::update_key(const std::uint8_t index, const bool enabled) {
     if (index >= 16) return;
-    keys[index] = enabled;
-    if (register_listening_for_key.has_value() && enabled) {
+
+    // react when pressed then released
+    if (register_listening_for_key.has_value() && keys[index] && !enabled) {
         v[register_listening_for_key.value()] = index;
         register_listening_for_key = std::nullopt;
     }
+    keys[index] = enabled;
 }
 
 
