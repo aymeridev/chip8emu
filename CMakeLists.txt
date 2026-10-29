@@ -6,6 +6,7 @@ project(chip8emu VERSION 1.0.0
 
 enable_testing()
 
+
 include(GNUInstallDirs)
 
 set(CMAKE_CXX_STANDARD 20)
@@ -103,6 +104,10 @@ else ()
             tests/test_display.cpp
             tests/test_load.cpp
     )
+
+
+    target_compile_definitions(chip8tests PRIVATE
+            DOCTEST_COUNTER=__LINE__)
 
     target_link_libraries(chip8tests PRIVATE
             chip8core

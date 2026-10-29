@@ -19,7 +19,7 @@ TEST_CASE("Fx55 saves V0..Vx inclusive and advances I") {
     };
     std::span<std::uint8_t> sp_mem = mem;
     chip.load_rom(sp_mem);
-    for (int c = 0; c < 5; ++c) chip.cycle();
+    for (int c = 0; c < 5; ++c) CHECK(chip.cycle() == Chip8Error::None);
 
     CHECK(chip.memory[0x300] == 0x11);
     CHECK(chip.memory[0x301] == 0x22);
@@ -36,7 +36,7 @@ TEST_CASE("Fx55 with x = 0 still saves V0") {
     };
     const std::span<std::uint8_t> sp_mem = mem;
     chip.load_rom(sp_mem);
-    for (int c = 0; c < 3; ++c) chip.cycle();
+    for (int c = 0; c < 3; ++c) CHECK(chip.cycle() == Chip8Error::None);
 
     CHECK(chip.memory[0x300] == 0x7F);
 }
@@ -53,8 +53,8 @@ TEST_CASE("Fx65 loads V0..Vx inclusive and advances I") {
     chip.memory[0x301] = 0xBB;
     chip.memory[0x302] = 0xCC;
     chip.memory[0x303] = 0xDD;
-    chip.cycle();
-    chip.cycle();
+    CHECK(chip.cycle() == Chip8Error::None);
+    CHECK(chip.cycle() == Chip8Error::None);
 
     CHECK(chip.v[0] == 0xAA);
     CHECK(chip.v[1] == 0xBB);

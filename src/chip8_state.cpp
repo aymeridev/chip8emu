@@ -335,7 +335,7 @@ Chip8Error Chip8State::run_math(std::uint8_t n, std::uint8_t x, std::uint8_t y) 
             // set vX to vY and shift vX one bit to the left, set vF to the bit shifted out, even if X=F!
             v[x] = v[y];
             const std::uint8_t bit = (v[x] & 0x80) >> 7;
-            v[x] <<= 1;
+            v[x] <<= static_cast<std::uint8_t>(1);
             v[0xF] = bit;
             break;
         }

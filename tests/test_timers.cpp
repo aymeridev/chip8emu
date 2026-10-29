@@ -15,8 +15,8 @@ TEST_CASE("Fx15 sets the delay timer from Vx") {
     };
     const std::span<std::uint8_t> sp_mem = mem;
     chip.load_rom(sp_mem);
-    chip.cycle();
-    chip.cycle();
+    CHECK(chip.cycle() == Chip8Error::None);
+    CHECK(chip.cycle() == Chip8Error::None);
     CHECK(chip.delay_timer == 10);
 }
 
@@ -29,7 +29,7 @@ TEST_CASE("Fx07 reads the delay timer into Vx") {
     };
     const std::span<std::uint8_t> sp_mem = mem;
     chip.load_rom(sp_mem);
-    for (int i = 0; i < 3; ++i) chip.cycle();
+    for (int i = 0; i < 3; ++i) CHECK(chip.cycle() == Chip8Error::None);
     CHECK(chip.v[1] == 10);
 }
 
@@ -41,8 +41,8 @@ TEST_CASE("Fx18 sets the sound timer from Vx") {
     };
     const std::span<std::uint8_t> sp_mem = mem;
     chip.load_rom(sp_mem);
-    chip.cycle();
-    chip.cycle();
+    CHECK(chip.cycle() == Chip8Error::None);
+    CHECK(chip.cycle() == Chip8Error::None);
     CHECK(chip.sound_timer == 5);
 }
 

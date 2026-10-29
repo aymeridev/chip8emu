@@ -23,7 +23,7 @@ TEST_CASE("Fx33 stores the decimal digits of Vx at I") {
     };
     std::span<std::uint8_t> sp_mem = mem;
     CHECK(chip.load_rom(sp_mem));
-    for (int c = 0; c < 3; ++c) chip.cycle();
+    for (int c = 0; c < 3; ++c) CHECK(chip.cycle() == Chip8Error::None);
 
     CHECK(chip.memory[0x300] == hundreds);
     CHECK(chip.memory[0x301] == tens);

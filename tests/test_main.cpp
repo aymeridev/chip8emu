@@ -37,7 +37,7 @@ TEST_CASE("subroutines work") {
     chip.load_rom(sp_mem);
 
     for (int i = 0; i < 10; ++i)
-        chip.cycle();
+        CHECK(chip.cycle() == Chip8Error::None);
 
     CHECK(chip.v[0] == 7);
     CHECK(chip.v[1] == 5);

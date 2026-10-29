@@ -32,11 +32,11 @@ TEST_CASE("Dxyn clipped at the bottom still waits for vblank") {
     CHECK(chip.v[0xF] == 0);
 
     CHECK(chip.waiting_for_vblank);
-    chip.cycle(); // blocked: V2 = 5 must not run yet
+    (void)chip.cycle(); // blocked: V2 = 5 must not run yet
     CHECK(chip.v[2] == 0);
 
     chip.tick_timers(); // vblank
-    chip.cycle();
+    (void)chip.cycle();
     CHECK(chip.v[2] == 5);
 }
 
