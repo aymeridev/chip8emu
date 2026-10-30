@@ -3,6 +3,7 @@
 // ReSharper disable once CppUnusedIncludeDirective
 #include <cstdint>
 #include <string_view>
+#include <span>
 
 constexpr std::array<const std::uint8_t, 1438> snake_rom_data = {
   0x16, 0xd6, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -180,7 +181,7 @@ struct RomEntry {
 };
 
 // limited to max 7 roms
-constexpr std::array<RomEntry, 2> roms = {
+constexpr std::array roms = {
   RomEntry { .name = "Snake", .data = snake_rom_data, .keys = { 5, 8, 7, 9 }},
   RomEntry { .name = "Tetris", .data = tetris_rom_data, .keys = { 4, 7, 5, 6 }},
 };
