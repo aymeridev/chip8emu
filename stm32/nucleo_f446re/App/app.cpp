@@ -149,8 +149,7 @@ void app_main(UART_HandleTypeDef* huart2, I2C_HandleTypeDef* hi2c1, TIM_HandleTy
                             break;
                         case MenuAction::INVERT:
                             invert_screen = !invert_screen;
-                            ssd1306_invert_screen(*hi2c1, invert_screen);
-                            menu.dirty = true;
+                            if (!ssd1306_invert_screen(*hi2c1, invert_screen)) error = true;
                             break;
                     }
                 }
@@ -193,16 +192,16 @@ void app_main(UART_HandleTypeDef* huart2, I2C_HandleTypeDef* hi2c1, TIM_HandleTy
                     state.screen_dirty = false;
                 }
             }
+            if (!sound_timer_active && state.sound_timer > 0) {
+                HAL_TIM_PWM_Start(htim3, TIM_CHANNEL_2);
+                sound_timer_active = true;
+            } else if (sound_timer_active && state.sound_timer == 0) {
+                HAL_TIM_PWM_Stop(htim3, TIM_CHANNEL_2);
+                sound_timer_active = false;
+            }
             state.tick_timers();
             n++;
             next_frame = n * 1000 / fps;
-        }
-        if (!sound_timer_active && state.sound_timer > 0) {
-            HAL_TIM_PWM_Start(htim3, TIM_CHANNEL_2);
-            sound_timer_active = true;
-        } else if (sound_timer_active && state.sound_timer == 0) {
-            HAL_TIM_PWM_Stop(htim3, TIM_CHANNEL_2);
-            sound_timer_active = false;
         }
     }
 }
