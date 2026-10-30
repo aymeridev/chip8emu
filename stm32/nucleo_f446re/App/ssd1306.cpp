@@ -44,3 +44,15 @@ bool ssd1306_draw(I2C_HandleTypeDef &hi2c1, const std::array<std::uint8_t, 1024>
                     }
     return true;
 }
+
+bool ssd1306_invert_screen(I2C_HandleTypeDef &hi2c1, bool invert) {
+
+    auto screen = invert ? std::to_array<std::uint8_t>({0xA7}) :
+                                               std::to_array<std::uint8_t>({0xA6});
+
+    if (HAL_I2C_Mem_Write(&hi2c1, oled_address, 0x00,
+        I2C_MEMADD_SIZE_8BIT, screen.data(), screen.size(), HAL_MAX_DELAY) != HAL_OK) {
+        return false;
+    }
+    return true;
+}
