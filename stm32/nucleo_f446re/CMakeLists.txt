@@ -33,7 +33,9 @@ enable_language(C ASM)
 
 # Create an executable object type
 add_executable(${CMAKE_PROJECT_NAME}
-        App/font5x7.hpp)
+        App/font5x7.hpp
+        App/menu.cpp
+        App/menu.hpp)
 
 # Add STM32CubeMX generated sources
 add_subdirectory(cmake/stm32cubemx)
