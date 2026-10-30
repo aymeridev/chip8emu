@@ -1,19 +1,7 @@
+// Written by Limor Fried/Ladyada for Adafruit Industries. BSD license, check font/license.txt for more information. All text above must be included in any redistribution.
 #pragma once
 #include <array>
 #include <cstdint>
-
-#ifdef __AVR__
-#include <avr/io.h>
-#include <avr/pgmspace.h>
-#elif defined(ESP8266)
-#include <pgmspace.h>
-#elif defined(__IMXRT1052__) || defined(__IMXRT1062__)
-// PROGMEM is defefind for T4 to place data in specific memory section
-#undef PROGMEM
-#define PROGMEM
-#else
-#define PROGMEM
-#endif
 
 // Standard ASCII 5x7 font
 
