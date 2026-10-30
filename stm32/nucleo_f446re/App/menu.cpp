@@ -20,14 +20,14 @@ MenuAction Menu::action() const {
     return MenuAction::LOAD_ROM;
 }
 
-bool Menu::next() {
+void Menu::next() {
     selected_index = (selected_index + 1) % menu_size;
     dirty = true;
     return true;
 
 }
 
-bool Menu::previous() {
+void Menu::previous() {
     selected_index = (selected_index + roms.size() - 1) % menu_size;
     dirty = true;
     return true;
