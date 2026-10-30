@@ -11,6 +11,7 @@ namespace {
     auto state = Chip8State();
     std::array<std::uint8_t, 1024> screen_buffer = {};
     bool menu = true;
+    std::uint8_t menu_index = 0;
 
     struct Key {
         GPIO_TypeDef* gpio {};
@@ -106,7 +107,25 @@ void app_main(UART_HandleTypeDef* huart2, I2C_HandleTypeDef* hi2c1, TIM_HandleTy
             continue;
         }
         if (menu) {
-            draw_text(screen_buffer, 0, 0, "HELLO WORLD!");
+
+            if (HAL_GPIO_ReadPin(BTN_DOWN_GPIO_Port, BTN_DOWN_Pin) == GPIO_PIN_RESET) {
+                while (HAL_GPIO_ReadPin(BTN_DOWN_GPIO_Port, BTN_DOWN_Pin) == GPIO_PIN_RESET) {}
+                if (menu_index < 6) menu_index++;
+            }
+
+            if (HAL_GPIO_ReadPin(BTN_UP_GPIO_Port, BTN_UP_Pin) == GPIO_PIN_RESET) {
+                while (HAL_GPIO_ReadPin(BTN_UP_GPIO_Port, BTN_UP_Pin) == GPIO_PIN_RESET) {}
+                if (menu_index > 0) menu_index--;
+            }
+
+            screen_buffer.fill(0);
+            draw_text(screen_buffer, 0, 1, "===== chip8emu =====");
+            for (int i = 0; i < 7; ++i) {
+                draw_text(screen_buffer, i + 1, 1, "HELLO WORLD!");
+            }
+            for (int i = 128 * (menu_index + 1); i < 128 * (menu_index + 2); ++i) {
+                screen_buffer[i] = ~screen_buffer[i];
+            }
             if (!ssd1306_draw(*hi2c1, screen_buffer)) error = true;
         } else {
             if (HAL_GetTick() - start >= next_frame) {
@@ -137,7 +156,6 @@ void app_main(UART_HandleTypeDef* huart2, I2C_HandleTypeDef* hi2c1, TIM_HandleTy
                 next_frame = n * 1000 / fps;
             }
             if (state.screen_dirty) {
-
                 screen_to_array(screen_buffer, state.screen);
                 if (!ssd1306_draw(*hi2c1, screen_buffer)) error = true;
                 state.screen_dirty = false;
