@@ -12,7 +12,6 @@ namespace {
     std::array<std::uint8_t, 1024> screen_buffer = {};
     bool show_menu = true;
     Menu menu = {};
-    bool audio_beep = false;
     bool invert_screen = false;
 
     struct KeyButton {
@@ -26,11 +25,15 @@ namespace {
         bool was_pressed = false;
     };
 
-    std::array<Button, 3> menu_buttons = {
+    std::array menu_buttons = {
         Button {.gpio = BTN_UP_GPIO_Port,    .pin = BTN_UP_Pin    },
         Button {.gpio = BTN_DOWN_GPIO_Port,  .pin = BTN_DOWN_Pin  },
         Button {.gpio = BTN_RIGHT_GPIO_Port, .pin = BTN_RIGHT_Pin },
     };
+
+    std::uint32_t start = 0;
+    std::uint64_t next_frame = 0;
+    std::uint64_t n = 0;
 }
 
 constexpr std::uint8_t BTN_UP_INDEX = 0;
@@ -38,17 +41,14 @@ constexpr std::uint8_t BTN_DOWN_INDEX = 1;
 constexpr std::uint8_t BTN_RIGHT_INDEX = 2;
 
 
-const std::array<KeyButton, 4> keysMap = {
+constexpr std::uint32_t fps = 60;
+
+const std::array keysMap = {
     KeyButton {.gpio = BTN_UP_GPIO_Port,    .pin = BTN_UP_Pin    },
     KeyButton {.gpio = BTN_DOWN_GPIO_Port,  .pin = BTN_DOWN_Pin  },
     KeyButton {.gpio = BTN_LEFT_GPIO_Port,  .pin = BTN_LEFT_Pin  },
     KeyButton {.gpio = BTN_RIGHT_GPIO_Port, .pin = BTN_RIGHT_Pin },
 };
-
-
-constexpr std::size_t row_size = 66;
-constexpr std::uint32_t fps = 60;
-
 
 
 
@@ -93,7 +93,7 @@ void screen_to_array(std::array<std::uint8_t, 1024>& buffer, const std::array<st
 bool just_pressed(Button& button) {
     const bool now = HAL_GPIO_ReadPin(button.gpio, button.pin) == GPIO_PIN_RESET;
     if (now && !button.was_pressed) {
-        audio_beep = true;
+        state.sound_timer = 5;
         button.was_pressed = now;
         return true;
     }
@@ -101,10 +101,15 @@ bool just_pressed(Button& button) {
     return false;
 }
 
+void reset() {
+    start = HAL_GetTick();
+    next_frame = 0;
+    n = 0;
+    menu.dirty = true;
+}
+
 void app_main(UART_HandleTypeDef* huart2, I2C_HandleTypeDef* hi2c1, TIM_HandleTypeDef* htim3) {
-    auto start = HAL_GetTick();
-    std::uint64_t next_frame = 0;
-    std::uint64_t n = 0;
+
     bool error = false;
 
     if (HAL_I2C_IsDeviceReady(hi2c1, oled_address, 3, 100) != HAL_OK || !ssd1306_init(*hi2c1)) {
@@ -113,6 +118,7 @@ void app_main(UART_HandleTypeDef* huart2, I2C_HandleTypeDef* hi2c1, TIM_HandleTy
 
     bool sound_timer_active = false;
 
+    reset();
     while (true) {
         if (error) {
             if (sound_timer_active) {
@@ -123,49 +129,42 @@ void app_main(UART_HandleTypeDef* huart2, I2C_HandleTypeDef* hi2c1, TIM_HandleTy
             HAL_Delay(100);
             continue;
         }
-        if (audio_beep) {
-            HAL_TIM_PWM_Start(htim3, TIM_CHANNEL_2);
-            HAL_Delay(50);
-            HAL_TIM_PWM_Stop(htim3, TIM_CHANNEL_2);
-            audio_beep = false;
-        }
-        if (show_menu) {
-            if (just_pressed(menu_buttons[BTN_UP_INDEX])) {
-                menu.previous();
-            }
+        if (HAL_GetTick() - start >= next_frame) {
+            if (show_menu) {
 
-            if (just_pressed(menu_buttons[BTN_DOWN_INDEX])) {
-                menu.next();
-            }
-
-            if (just_pressed(menu_buttons[BTN_RIGHT_INDEX])) {
-                switch (menu.action()) {
-                    case MenuAction::LOAD_ROM:
-                        state.load_rom(roms[menu.selected()].data);
-                        n = 0;
-                        next_frame = 0;
-                        start = HAL_GetTick();
-                        show_menu = false;
-                        break;
-                    case MenuAction::INVERT:
-                        invert_screen = !invert_screen;
-                        menu.dirty = true;
-                        break;
+                if (just_pressed(menu_buttons[BTN_UP_INDEX])) {
+                    menu.previous();
                 }
-            }
 
-
-            menu.draw_menu(screen_buffer, htim3);
-            if (menu.dirty) {
-                if (invert_screen) for (int i = 0; i < 1024; ++i) screen_buffer[i] = ~screen_buffer[i];
-                if (ssd1306_draw(*hi2c1, screen_buffer)) {
-                    menu.dirty = false;
-                } else {
-                    error = true;
+                if (just_pressed(menu_buttons[BTN_DOWN_INDEX])) {
+                    menu.next();
                 }
-            }
-        } else {
-            if (HAL_GetTick() - start >= next_frame) {
+
+                if (just_pressed(menu_buttons[BTN_RIGHT_INDEX])) {
+                    switch (menu.action()) {
+                        case MenuAction::LOAD_ROM:
+                            reset();
+                            state.load_rom(roms[menu.selected()].data);
+                            show_menu = false;
+                            break;
+                        case MenuAction::INVERT:
+                            invert_screen = !invert_screen;
+                            ssd1306_invert_screen(*hi2c1, invert_screen);
+                            menu.dirty = true;
+                            break;
+                    }
+                }
+
+
+                if (menu.dirty) {
+                    menu.draw_menu(screen_buffer);
+                    if (ssd1306_draw(*hi2c1, screen_buffer)) {
+                        menu.dirty = false;
+                    } else {
+                        error = true;
+                    }
+                }
+            } else {
                 for (int i = 0; i < 4; ++i) {
                     const auto&[gpio, pin] = keysMap[i];
                     const auto key = roms[menu.selected()].keys[i];
@@ -178,8 +177,8 @@ void app_main(UART_HandleTypeDef* huart2, I2C_HandleTypeDef* hi2c1, TIM_HandleTy
 
                 if (BSP_PB_GetState(BUTTON_USER) == GPIO_PIN_RESET) {
                     screen_buffer.fill(0);
+                    reset();
                     show_menu = true;
-                    menu.dirty = true;
                 }
 
                 for (int i = 0; i < 100; ++i) {
@@ -188,25 +187,22 @@ void app_main(UART_HandleTypeDef* huart2, I2C_HandleTypeDef* hi2c1, TIM_HandleTy
                         break;
                     }
                 }
-
-                if (!sound_timer_active && state.sound_timer > 0) {
-                    HAL_TIM_PWM_Start(htim3, TIM_CHANNEL_2);
-                    sound_timer_active = true;
-                } else if (sound_timer_active && state.sound_timer == 0) {
-                    HAL_TIM_PWM_Stop(htim3, TIM_CHANNEL_2);
-                    sound_timer_active = false;
+                if (state.screen_dirty) {
+                    screen_to_array(screen_buffer, state.screen);
+                    if (!ssd1306_draw(*hi2c1, screen_buffer)) error = true;
+                    state.screen_dirty = false;
                 }
-
-                state.tick_timers();
-                n++;
-                next_frame = n * 1000 / fps;
             }
-            if (state.screen_dirty) {
-                screen_to_array(screen_buffer, state.screen);
-                if (invert_screen) for (int i = 0; i < 1024; ++i) screen_buffer[i] = ~screen_buffer[i];
-                if (!ssd1306_draw(*hi2c1, screen_buffer)) error = true;
-                state.screen_dirty = false;
-            }
+            state.tick_timers();
+            n++;
+            next_frame = n * 1000 / fps;
+        }
+        if (!sound_timer_active && state.sound_timer > 0) {
+            HAL_TIM_PWM_Start(htim3, TIM_CHANNEL_2);
+            sound_timer_active = true;
+        } else if (sound_timer_active && state.sound_timer == 0) {
+            HAL_TIM_PWM_Stop(htim3, TIM_CHANNEL_2);
+            sound_timer_active = false;
         }
     }
 }
