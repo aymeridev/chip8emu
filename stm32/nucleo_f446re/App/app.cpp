@@ -13,6 +13,7 @@ namespace {
     bool show_menu = true;
     Menu menu = {};
     bool audio_beep = false;
+    bool invert_screen = false;
 
     struct KeyButton {
         GPIO_TypeDef* gpio {};
@@ -138,16 +139,25 @@ void app_main(UART_HandleTypeDef* huart2, I2C_HandleTypeDef* hi2c1, TIM_HandleTy
             }
 
             if (just_pressed(menu_buttons[BTN_RIGHT_INDEX])) {
-                state.load_rom(roms[menu.selected()].data);
-                n = 0;
-                next_frame = 0;
-                start = HAL_GetTick();
-                show_menu = false;
+                switch (menu.action()) {
+                    case MenuAction::LOAD_ROM:
+                        state.load_rom(roms[menu.selected()].data);
+                        n = 0;
+                        next_frame = 0;
+                        start = HAL_GetTick();
+                        show_menu = false;
+                        break;
+                    case MenuAction::INVERT:
+                        invert_screen = !invert_screen;
+                        menu.dirty = true;
+                        break;
+                }
             }
 
 
             menu.draw_menu(screen_buffer, htim3);
             if (menu.dirty) {
+                if (invert_screen) for (int i = 0; i < 1024; ++i) screen_buffer[i] = ~screen_buffer[i];
                 if (ssd1306_draw(*hi2c1, screen_buffer)) {
                     menu.dirty = false;
                 } else {
@@ -193,6 +203,7 @@ void app_main(UART_HandleTypeDef* huart2, I2C_HandleTypeDef* hi2c1, TIM_HandleTy
             }
             if (state.screen_dirty) {
                 screen_to_array(screen_buffer, state.screen);
+                if (invert_screen) for (int i = 0; i < 1024; ++i) screen_buffer[i] = ~screen_buffer[i];
                 if (!ssd1306_draw(*hi2c1, screen_buffer)) error = true;
                 state.screen_dirty = false;
             }

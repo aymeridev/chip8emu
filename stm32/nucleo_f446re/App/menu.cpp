@@ -4,6 +4,7 @@
 #include "font5x7.hpp"
 #include <string_view>
 
+
 void draw_text(std::array<std::uint8_t, 1024>& buffer, int page, int column, std::string_view text) {
     for (int ch = 0; ch < text.size(); ++ch) {
         for (int x = 0; x < 5; ++x) {
@@ -14,19 +15,22 @@ void draw_text(std::array<std::uint8_t, 1024>& buffer, int page, int column, std
     }
 }
 
+MenuAction Menu::action() const {
+    if (selected_index >= roms.size()) return MenuAction::INVERT;
+    return MenuAction::LOAD_ROM;
+}
 
 bool Menu::next() {
-    selected_index = (selected_index + 1) % roms.size();
+    selected_index = (selected_index + 1) % menu_size;
     dirty = true;
     return true;
 
 }
 
 bool Menu::previous() {
-    selected_index = (selected_index + roms.size() - 1) % roms.size();
+    selected_index = (selected_index + roms.size() - 1) % menu_size;
     dirty = true;
     return true;
-
 }
 
 void Menu::draw_menu(std::array<std::uint8_t, 1024>& screen_buffer, TIM_HandleTypeDef * htim3) {
@@ -35,6 +39,7 @@ void Menu::draw_menu(std::array<std::uint8_t, 1024>& screen_buffer, TIM_HandleTy
     for (int i = 0; i < roms.size(); ++i) {
         draw_text(screen_buffer, i + 1, 1, roms[i].name);
     }
+        draw_text(screen_buffer, roms.size() + 1, 1, "[Opt] Invert");
     for (int i = 128 * (selected_index + 1); i < 128 * (selected_index + 2); ++i) {
         screen_buffer[i] = ~screen_buffer[i];
     }
