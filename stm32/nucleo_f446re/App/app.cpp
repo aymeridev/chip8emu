@@ -13,20 +13,21 @@ namespace {
     bool menu = true;
     std::uint8_t menu_index = 0;
 
-    struct Key {
+    struct KeyButton {
         GPIO_TypeDef* gpio {};
         std::uint16_t pin {};
-        std::uint8_t key = 0;
     };
+
+    bool audio_beep = false;
 }
 
 
 
-const std::array<Key, 4> keysMap = {
-    Key {.gpio = BTN_UP_GPIO_Port,    .pin = BTN_UP_Pin,    .key = 5 },
-    Key {.gpio = BTN_DOWN_GPIO_Port,  .pin = BTN_DOWN_Pin,  .key = 8 },
-    Key {.gpio = BTN_LEFT_GPIO_Port,  .pin = BTN_LEFT_Pin,  .key = 7 },
-    Key {.gpio = BTN_RIGHT_GPIO_Port, .pin = BTN_RIGHT_Pin, .key = 9 },
+const std::array<KeyButton, 4> keysMap = {
+    KeyButton {.gpio = BTN_UP_GPIO_Port,    .pin = BTN_UP_Pin    },
+    KeyButton {.gpio = BTN_DOWN_GPIO_Port,  .pin = BTN_DOWN_Pin  },
+    KeyButton {.gpio = BTN_LEFT_GPIO_Port,  .pin = BTN_LEFT_Pin  },
+    KeyButton {.gpio = BTN_RIGHT_GPIO_Port, .pin = BTN_RIGHT_Pin },
 };
 
 constexpr std::size_t row_size = 66;
@@ -83,8 +84,20 @@ void draw_text(std::array<std::uint8_t, 1024>& buffer, int page, int column, std
     }
 }
 
+void draw_menu() {
+
+}
+
+bool is_button_released(GPIO_TypeDef* gpio, std::uint16_t pin) {
+    if (HAL_GPIO_ReadPin(gpio, pin) == GPIO_PIN_RESET) {
+        while (HAL_GPIO_ReadPin(gpio, pin) == GPIO_PIN_RESET) {}
+        audio_beep = true;
+        return true;
+    }
+    return false;
+}
+
 void app_main(UART_HandleTypeDef* huart2, I2C_HandleTypeDef* hi2c1, TIM_HandleTypeDef* htim3) {
-    state.load_rom(rom);
     const auto start = HAL_GetTick();
     std::uint64_t next_frame = 0;
     std::uint64_t n = 0;
@@ -106,22 +119,33 @@ void app_main(UART_HandleTypeDef* huart2, I2C_HandleTypeDef* hi2c1, TIM_HandleTy
             HAL_Delay(100);
             continue;
         }
+        if (audio_beep) {
+            HAL_TIM_PWM_Start(htim3, TIM_CHANNEL_2);
+            HAL_Delay(50);
+            HAL_TIM_PWM_Stop(htim3, TIM_CHANNEL_2);
+            audio_beep = false;
+        }
         if (menu) {
 
-            if (HAL_GPIO_ReadPin(BTN_DOWN_GPIO_Port, BTN_DOWN_Pin) == GPIO_PIN_RESET) {
-                while (HAL_GPIO_ReadPin(BTN_DOWN_GPIO_Port, BTN_DOWN_Pin) == GPIO_PIN_RESET) {}
-                if (menu_index < 6) menu_index++;
+            if (is_button_released(BTN_DOWN_GPIO_Port, BTN_DOWN_Pin)) {
+                menu_index = (menu_index + 1) % roms.size();
             }
 
-            if (HAL_GPIO_ReadPin(BTN_UP_GPIO_Port, BTN_UP_Pin) == GPIO_PIN_RESET) {
-                while (HAL_GPIO_ReadPin(BTN_UP_GPIO_Port, BTN_UP_Pin) == GPIO_PIN_RESET) {}
-                if (menu_index > 0) menu_index--;
+            if (is_button_released(BTN_UP_GPIO_Port, BTN_UP_Pin)) {
+                menu_index = (menu_index - 1) % roms.size();
+            }
+
+            if (is_button_released(BTN_RIGHT_GPIO_Port, BTN_RIGHT_Pin) || BSP_PB_GetState(BUTTON_USER) == GPIO_PIN_RESET) {
+                while (BSP_PB_GetState(BUTTON_USER) == GPIO_PIN_RESET) {}
+                audio_beep = true;
+                state.load_rom(roms[menu_index].data);
+                menu = false;
             }
 
             screen_buffer.fill(0);
             draw_text(screen_buffer, 0, 1, "===== chip8emu =====");
-            for (int i = 0; i < 7; ++i) {
-                draw_text(screen_buffer, i + 1, 1, "HELLO WORLD!");
+            for (int i = 0; i < roms.size(); ++i) {
+                draw_text(screen_buffer, i + 1, 1, roms[i].name);
             }
             for (int i = 128 * (menu_index + 1); i < 128 * (menu_index + 2); ++i) {
                 screen_buffer[i] = ~screen_buffer[i];
@@ -129,13 +153,22 @@ void app_main(UART_HandleTypeDef* huart2, I2C_HandleTypeDef* hi2c1, TIM_HandleTy
             if (!ssd1306_draw(*hi2c1, screen_buffer)) error = true;
         } else {
             if (HAL_GetTick() - start >= next_frame) {
-                for (const auto &[gpio, pin, key]: keysMap) {
+                for (int i = 0; i < 4; ++i) {
+                    const auto&[gpio, pin] = keysMap[i];
+                    const auto key = roms[menu_index].keys[i];
                     if (HAL_GPIO_ReadPin(gpio, pin) == GPIO_PIN_RESET) {
                         if (!state.keys[key]) state.update_key(key, true);
                     } else if (state.keys[key]) {
                         state.update_key(key, false);
                     }
                 }
+
+                if (BSP_PB_GetState(BUTTON_USER) == GPIO_PIN_RESET) {
+                    while (BSP_PB_GetState(BUTTON_USER) == GPIO_PIN_RESET) {}
+                    audio_beep = true;
+                    menu = true;
+                }
+
                 for (int i = 0; i < 100; ++i) {
                     if (state.cycle() != Chip8Error::None) {
                         error = true;
