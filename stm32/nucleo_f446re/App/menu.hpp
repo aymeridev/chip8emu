@@ -14,7 +14,7 @@ constexpr std::uint8_t menu_size = roms.size() + 1;
 
 class Menu {
 public:
-    void draw_menu(std::array<std::uint8_t, 1024>& screen_buffer);
+    void draw_menu(std::array<std::uint8_t, 1024>& screen_buffer) const;
 
     void previous();
     void next();
