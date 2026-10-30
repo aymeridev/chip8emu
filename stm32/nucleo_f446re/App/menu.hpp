@@ -1,5 +1,4 @@
 #pragma once
-#include "main.h"
 #include <array>
 #include <cstdint>
 
@@ -15,7 +14,7 @@ constexpr std::uint8_t menu_size = roms.size() + 1;
 
 class Menu {
 public:
-    void draw_menu(std::array<std::uint8_t, 1024>& screen_buffer, TIM_HandleTypeDef * htim3);
+    void draw_menu(std::array<std::uint8_t, 1024>& screen_buffer);
 
     void previous();
     void next();

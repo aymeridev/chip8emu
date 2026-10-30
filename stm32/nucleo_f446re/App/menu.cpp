@@ -30,7 +30,7 @@ void Menu::previous() {
     dirty = true;
 }
 
-void Menu::draw_menu(std::array<std::uint8_t, 1024>& screen_buffer, TIM_HandleTypeDef * htim3) {
+void Menu::draw_menu(std::array<std::uint8_t, 1024>& screen_buffer) {
     screen_buffer.fill(0);
     draw_text(screen_buffer, 0, 0, "=====> chip8emu <====");
     for (int i = 0; i < roms.size(); ++i) {
