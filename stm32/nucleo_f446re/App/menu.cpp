@@ -23,14 +23,11 @@ MenuAction Menu::action() const {
 void Menu::next() {
     selected_index = (selected_index + 1) % menu_size;
     dirty = true;
-    return true;
-
 }
 
 void Menu::previous() {
-    selected_index = (selected_index + roms.size() - 1) % menu_size;
+    selected_index = (selected_index + menu_size - 1) % menu_size;
     dirty = true;
-    return true;
 }
 
 void Menu::draw_menu(std::array<std::uint8_t, 1024>& screen_buffer, TIM_HandleTypeDef * htim3) {
