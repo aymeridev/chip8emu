@@ -30,7 +30,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int, char *[]) {
         return SDL_APP_FAILURE;
     }
 
-    SDL_SetAppMetadata("chip8emu", "1.0", "dev.aymeri.chip8emu");
+    SDL_SetAppMetadata("chip8emu", "1.0.0", "dev.aymeri.chip8emu");
 
     auto* state = new AppState;
     *appstate = state;
@@ -159,7 +159,7 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
             if (!state->pause && state->chip8_state.sound_timer > 0) state->gain = std::min(1.0f, state->gain + 1 / 220.f);
             else state->gain = std::max(0.0f, state->gain - 1 / 220.f);
 
-            sample = (wave) * state->volume * state->gain;
+            sample = wave * state->volume * state->gain;
         }
         SDL_PutAudioStreamData(state->stream, samples, 512 * sizeof(float));
     }
