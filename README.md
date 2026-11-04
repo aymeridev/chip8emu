@@ -20,7 +20,7 @@ The emulator currently passes tests 1 to 7 from [Timendus CHIP-8 Test Suite](htt
 - Hexadecimal Memory Inspector (Show internal memory from 0x000 to 0x200 and 0x200 to 0xFFF for the rest)
 - Disassembler: List all the instructions of the current ROM, mapped to the instructions from Cowgod's Guide.
 - Display Settings: Change background/foreground color (and randomize colors)
-- Keypad support: Use the same keybinds as [Tobias V. Langhoff’s Guide](https://tobiasvl.github.io/blog/write-a-chip-8-emulator/#keypad). Use `ZQSD` (AZERTY) to move in most of the games.
+- Keypad support: Use the same keybinds as [Tobias V. Langhoff’s Guide](https://tobiasvl.github.io/blog/write-a-chip-8-emulator/#keypad). Keys use physical positions (1234/AZER/QSDF/WXCV on AZERTY)
 - Browse games/tests roms in `./roms`. Support for drag-and-drop.
 
 You can toggle on/off the Dear ImGui debugger using the `F1` key.
@@ -36,9 +36,8 @@ The project uses 4 targets:
 
 ## Roadmap
 
+- Desktop: Gamepad support
 - STM32: Use DMA for screen rendering
-- STM32: Menu to select ROMs at runtime
-
 
 ## Install
 
@@ -65,7 +64,7 @@ The emulator is also available on STM32!
 
 In this version, some changes have been made:
 
-- Instead of loading roms via filesystem, the ROM is in the flash. (through a `constexpr std::array`)
+- Instead of loading roms via filesystem, the ROMs are in the flash. (see [Games/Menu](#gamesmenu))
 - The screen (64x32) is converted and sent to the SSD1306 (via x2 zoom) only when `screen_dirty` is true.
 - An I2C bus recovery runs at boot up if a reset interrupted a transaction.
 
@@ -91,13 +90,16 @@ For the wiring:
 
 #### Inputs
 
-> By default the keys are mapped to Snake. If you want to change them to a different game, you can edit `keysMap` in `stm32/nucleo_f446re/App/app.cpp`
+- `BTN_UP`: pin PA10 (header D2)
+- `BTN_RIGHT`: pin PB5 (header D4)
+- `BTN_DOWN`: pin PB4 (header D5)
+- `BTN_LEFT`: pin PB10 (header D6)
 
-- `BTN_UP`: pin PA10 (header D2) **(key code 5)**
-- `BTN_RIGHT`: pin PB5 (header D4) **(key code 9)**
-- `BTN_DOWN`: pin PB4 (header D5) **(key code 8)**
-- `BTN_LEFT`: pin PB10 (header D6) **(key code 7)**
+### Games/Menu
 
+In `roms.hpp` you can change which ROMs are available and the keys for each ROM.
+At bootup you can select the ROM which you want to load (via BTN_UP/BTN_DOWN), and then press BTN_RIGHT arrow to play it.
+To change game you can either press the blue `USER` button or the `RESET` button on the board.
 
 ### Build/Flash
 
@@ -113,7 +115,8 @@ openocd -f board/st_nucleo_f4.cfg -c "program build/stm32/stm32/nucleo_f446re/nu
 
 ### Limits
 
-Currently, screen is sent via blocking I2C, which means games that redraw at each frame will run a little bit below 60 Hz. (see Roadmap)
+- Currently, screen is sent via blocking I2C, which means games that redraw at each frame will run a little bit below 60 Hz. (see Roadmap)
+- The menu cannot display more than 6 roms at a time. (8 lines available, one for the title and one for the invert display toggle)
 
 ## Tests
 
